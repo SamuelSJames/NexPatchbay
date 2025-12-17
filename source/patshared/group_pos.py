@@ -1,4 +1,4 @@
-from typing import Any, Union, Optional
+from typing import TYPE_CHECKING, Any, Union, Optional
 
 from .base_enums import (
     BoxLayoutMode, BoxFlag,
@@ -6,6 +6,7 @@ from .base_enums import (
 
 
 class BoxPos:
+    """Box position and layout state."""
     pos: tuple[int, int]
     zone: str = ''
     layout_mode: BoxLayoutMode = BoxLayoutMode.AUTO
@@ -22,12 +23,14 @@ class BoxPos:
         return f"BoxPos({self.pos})"
     
     def _set_flag(self, flag: BoxFlag, yesno: bool):
+        """Set or clear a `BoxFlag` on this BoxPos."""
         if yesno:
             self.flags |= flag
         else:
             self.flags &= ~flag
     
     def eat(self, other: 'BoxPos'):
+        """Copy fields from another `BoxPos` into this one."""
         # faster way I found to copy a tuple without
         # linking to it.
         # write self.pos = tuple(box_pos.pos) does not
@@ -38,25 +41,28 @@ class BoxPos:
         self.flags = other.flags
     
     def is_wrapped(self) -> bool:
+        """Return True if the box is marked as wrapped."""
         return bool(self.flags & BoxFlag.WRAPPED)
     
     def is_hidden(self) -> bool:
+        """Return True if the box is hidden."""
         return bool(self.flags & BoxFlag.HIDDEN)
 
     def set_wrapped(self, yesno: bool):
+        """Set or clear the WRAPPED flag."""
         self._set_flag(BoxFlag.WRAPPED, yesno)
             
     def set_hidden(self, yesno: bool):
+        """Set or clear the HIDDEN flag."""
         self._set_flag(BoxFlag.HIDDEN, yesno)
 
     def copy(self) -> 'BoxPos':
+        """Return a shallow copy of this BoxPos."""
         return BoxPos(self)
 
 
 class GroupPos:
-    '''Object assigned to a group in a specific view.
-    It contains its splited state, box positions,
-    wrapped and hidden states.'''
+    """Group layout configuration for a view."""
     ARG_TYPES = 'isiiiiiiiiiiiii'
 
     port_types_view: PortTypesViewFlag = PortTypesViewFlag.NONE
@@ -72,8 +78,7 @@ class GroupPos:
     'If false, it will ask the program to choose the splitted state.'
     
     has_sure_existence: bool = True
-    '''If false, this GroupPos may reffers to a group without ports
-    in its port_types_view.'''
+    """If False, this GroupPos may refer to a group with no ports."""
     
     def __init__(self):
         self.boxes = dict[PortMode, BoxPos]()
@@ -83,6 +88,11 @@ class GroupPos:
     
     @staticmethod
     def is_point(value: Any) -> bool:
+        """Return True if `value` is a 2-int coordinate-like sequence.
+
+        Accepts lists or tuples of two integers, used to validate stored
+        box positions loaded from untyped data sources (JSON, etc.).
+        """
         if not isinstance(value, (list, tuple)):
             return False
         
@@ -97,7 +107,12 @@ class GroupPos:
     @staticmethod
     def from_serialized_dict(
             src: dict[str, Any], version=(0, 14, 0)) -> 'GroupPos':
-        'returns a GroupPos from an old json file dict.'
+        """Return a GroupPos parsed from an old-format serialized dict.
+
+        The function handles file format quirks depending
+        on the `version` tuple and normalizes values into the current types
+        and structures used by `GroupPos`.
+        """
         port_types_view = src.get('port_types_view')
         group_name = src.get('group_name')
         null_xy = src.get('null_xy')
@@ -131,11 +146,11 @@ class GroupPos:
         for port_mode in PortMode.in_out_both():
             if port_mode is PortMode.INPUT:
                 if GroupPos.is_point(in_xy):
-                    gpos.boxes[port_mode].pos = tuple(in_xy)
+                    gpos.boxes[port_mode].pos = in_xy
                 wrapped = bool(gpos.flags & GroupPosFlag.WRAPPED_INPUT)
             elif port_mode is PortMode.OUTPUT:
                 if GroupPos.is_point(out_xy):
-                    gpos.boxes[port_mode].pos = tuple(out_xy)
+                    gpos.boxes[port_mode].pos = out_xy
                 wrapped = bool(gpos.flags & GroupPosFlag.WRAPPED_OUTPUT)
             else:
                 if GroupPos.is_point(null_xy):
@@ -157,6 +172,11 @@ class GroupPos:
         return gpos
 
     def copy(self) -> 'GroupPos':
+        """Return a deep-ish copy of this GroupPos.
+
+        The returned object has copied boxes so further mutations do not
+        affect the original.
+        """
         group_pos = GroupPos()
         group_pos.__dict__ = self.__dict__.copy()
 
@@ -169,7 +189,12 @@ class GroupPos:
     @staticmethod
     def from_new_dict(ptv: PortTypesViewFlag, group_name: str,
                       in_dict: dict) -> 'GroupPos':
-        'return a new GroupPos from a new json file dict.'
+        """Create a GroupPos from the newer JSON dictionary format.
+
+        The `in_dict` maps string port-mode keys (like 'INPUT', 'OUTPUT' or
+        'INPUT|OUTPUT') to per-box dictionaries. Unknown entries are
+        ignored and only recognized keys are used to populate `boxes`.
+        """
 
         gpos = GroupPos()
         gpos.port_types_view = ptv
@@ -234,6 +259,10 @@ class GroupPos:
         return gpos
 
     def as_new_dict(self) -> dict:
+        """Serialize this GroupPos to the newer JSON-friendly dict format.
+
+        Returns a dict suitable for persisting in the session JSON format.
+        """
         d = {}        
         splitted = bool(self.flags & GroupPosFlag.SPLITTED)
 
@@ -269,7 +298,11 @@ class GroupPos:
 
         return d
 
-    def to_arg_list(self) -> list[Union[str, int]]:
+    def to_arg_list(self) -> list[str | int]:
+        """Return a flat list usable as OSC arguments.
+
+        Layout: ptv_value, group_name, flags, then per-port-mode numbers.
+        """
         arg_list = list[Union[str, int]]()
 
         arg_list.append(self.port_types_view.value)
@@ -286,6 +319,10 @@ class GroupPos:
     
     @staticmethod
     def from_arg_list(arg_tuple: tuple[str | int, ...]) -> 'GroupPos':
+        """Create a GroupPos from a flat OSC-style argument list.
+
+        Returns an empty GroupPos on malformed input.
+        """
         gpos = GroupPos()
         
         if len(arg_tuple) != 15:
@@ -316,55 +353,65 @@ class GroupPos:
         return gpos
     
     def is_splitted(self) -> bool:
+        """Return True if the group is split into input/output boxes."""
         return bool(self.flags & GroupPosFlag.SPLITTED)
     
     def set_splitted(self, yesno: bool):
+        """Enable or disable the SPLITTED flag."""
         if yesno:
             self.flags |= GroupPosFlag.SPLITTED
         else:
             self.flags &= ~GroupPosFlag.SPLITTED
 
     def hidden_port_modes(self) -> PortMode:
+        """Return PortMode bits representing currently hidden ports."""
         if self.is_splitted():
             hd_port_mode = PortMode.NULL
             for port_mode in PortMode.INPUT, PortMode.OUTPUT:
                 if self.boxes[port_mode].is_hidden():
                     hd_port_mode |= port_mode
             return hd_port_mode
-        
+
         if self.boxes[PortMode.BOTH].is_hidden():
             return PortMode.BOTH
         return PortMode.NULL
 
     def set_hidden_port_mode(self, hidden_port_mode: PortMode):
+        """Set hidden state for input/output according to `hidden_port_mode`.
+        """
         for port_mode in PortMode.in_out_both():
             self.boxes[port_mode].set_hidden(
                 bool(hidden_port_mode & port_mode))
     
     def needs_redraw(self, gpos: 'GroupPos') -> bool:
+        """Return True if this layout differs from `gpos` enough to redraw."""
         if self.is_splitted() is not gpos.is_splitted():
             return True
-        
+
         if self.hidden_port_modes() is not gpos.hidden_port_modes():
             return True
-        
+
         if self.is_splitted():
             for port_mode in PortMode.OUTPUT, PortMode.INPUT:
                 if (self.boxes[port_mode].layout_mode
                         is not gpos.boxes[port_mode].layout_mode):
                     return True
-        
+
         else:
             if (self.boxes[PortMode.BOTH].layout_mode
                     is not self.boxes[PortMode.BOTH].layout_mode):
                 return True
-        
+
         return False
     
-    def apply_only_diffs(self, orig_gpos: 'Optional[GroupPos]', new_gpos: 'GroupPos'):
-        '''Apply to this config gpos only what is different between
-        session gpos orig_gpos (at load) and new_gpos (now)'''
-        
+    def apply_only_diffs(
+            self, orig_gpos: 'Optional[GroupPos]', new_gpos: 'GroupPos'):
+        """Apply only the differences between `orig_gpos` and `new_gpos`.
+
+        Update this GroupPos with changes from `new_gpos`, preserving other
+        fields that did not change in the session.
+        """
+
         if (orig_gpos is None
                 or new_gpos.is_splitted() is not orig_gpos.is_splitted()):
             if orig_gpos is not None:

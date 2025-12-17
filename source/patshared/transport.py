@@ -3,6 +3,7 @@ from enum import IntEnum
 
 @dataclass
 class TransportPosition:
+    """Transport position (BBT/frame) data."""
     frame: int
     rolling: bool
     valid_bbt: bool
@@ -13,6 +14,13 @@ class TransportPosition:
     
 
 class TransportWanted(IntEnum):
+    """How much transport information should be sent to external
+    subscribers.
+
+    - NO: send nothing
+    - STATE_ONLY: send only play/pause state changes
+    - FULL: send complete transport updates
+    """
     NO = 0
     'do not send any transport info'
     

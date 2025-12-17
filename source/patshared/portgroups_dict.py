@@ -1,5 +1,5 @@
 import logging
-from typing import Union, Iterator, Any
+from typing import TYPE_CHECKING, Union, Iterator, Any
 
 from .base_enums import PortType, PortMode
 
@@ -8,6 +8,7 @@ _logger = logging.getLogger(__name__)
 
 
 class PortgroupMem:
+    """Represents a portgroup entry."""
     group_name: str = ""
     port_type: PortType = PortType.NULL
     port_mode: PortMode = PortMode.NULL
@@ -19,6 +20,7 @@ class PortgroupMem:
 
     @staticmethod
     def from_serialized_dict(src: dict[str, Any]) -> 'PortgroupMem':
+        """Create a PortgroupMem from the old serialized dictionary format."""
         pg_mem = PortgroupMem()
 
         try:
@@ -33,6 +35,7 @@ class PortgroupMem:
         return pg_mem
 
     def has_a_common_port_with(self, other: 'PortgroupMem') -> bool:
+        """Return True if this portgroup shares any port name with `other`."""
         if (self.port_type is not other.port_type
                 or self.port_mode is not other.port_mode
                 or self.group_name != other.group_name):
@@ -54,6 +57,9 @@ class PortgroupMem:
         }
 
     def as_new_dict(self) -> dict[str, list[str] | bool]:
+        """Return a minimal dict representation used by the newer JSON
+        format for portgroups (keys: 'port_names' and optionally
+        'above_metadatas')."""
         new_dict: dict[str, list[str] | bool] = \
             {'port_names': self.port_names}
         if self.above_metadatas:
@@ -96,7 +102,7 @@ class PortgroupMem:
         pg_mem = PortgroupMem()
         
         try:
-            pg_mem.group_name = arg_list.pop(0)
+            pg_mem.group_name = str(arg_list.pop(0))
             pg_mem.port_type = PortType(arg_list.pop(0))
             pg_mem.port_mode = PortMode(arg_list.pop(0))
             pg_mem.above_metadatas = bool(arg_list.pop(0))
@@ -111,7 +117,12 @@ class PortgroupMem:
 
 
 class PortgroupsDict(
-        dict[PortType, dict[str, dict[PortMode, list[PortgroupMem]]]]):    
+        dict[PortType, dict[str, dict[PortMode, list[PortgroupMem]]]]):
+    """Mapping of PortType -> group name -> PortMode -> list[PortgroupMem].
+
+    Provides helpers to absorb both old (list-based) and new (dict-based)
+    JSON formats and to iterate and serialize the structure.
+    """
     def _eat_json_new(
             self, json_dict: dict[str, dict[str, dict[str, list[dict]]]]):
         for ptype_str, ptype_dict in json_dict.items():
@@ -201,14 +212,20 @@ class PortgroupsDict(
                 pmode_list.append(pg_mem)
 
     def eat_json(self, json_obj: Union[list, dict]):
+        """Load portgroup definitions from either the new dict-based
+        JSON format or the old list-based format."""
         if isinstance(json_obj, dict):
             self._eat_json_new(json_obj)
         elif isinstance(json_obj, list):
             self._eat_json_old(json_obj)
     
     def to_json(self) -> dict[str, dict[str, dict[str, list[dict]]]]:
+        """Serialize the current mapping to the newer JSON-friendly dict
+        format used by sessions and config files."""
         out_dict = dict[str, dict[str, dict[str, list[dict]]]]()
         for port_type, ptype_dict in self.items():
+            if TYPE_CHECKING:
+                assert isinstance(port_type.name, str)
             out_dict[port_type.name] = js_ptype_dict = {}
             for gp_name, group_dict in ptype_dict.items():
                 js_ptype_dict[gp_name] = {}
@@ -221,6 +238,7 @@ class PortgroupsDict(
         return out_dict
     
     def iter_all_portgroups(self) -> Iterator[PortgroupMem]:
+        """Yield every `PortgroupMem` stored in this mapping."""
         for ptype_dict in self.values():
             for gpname_dict in ptype_dict.values():
                 for pmode_list in gpname_dict.values():
@@ -230,6 +248,9 @@ class PortgroupsDict(
     def iter_portgroups(
             self, group_name: str, port_type: PortType,
             port_mode: PortMode) -> Iterator[PortgroupMem]:
+        """Yield `PortgroupMem` entries for the given combination of
+        `group_name`, `port_type` and `port_mode`.
+        """
         ptype_dict = self.get(port_type)
         if ptype_dict is None:
             return
@@ -246,6 +267,11 @@ class PortgroupsDict(
             yield pg_mem
                         
     def save_portgroup(self, pg_mem: PortgroupMem):
+        """Insert or replace a `PortgroupMem` into the mapping.
+
+        If any existing portgroup in the same bucket contains one of the
+        same `port_names`, it will be removed before inserting `pg_mem`.
+        """
         ptype_dict = self.get(pg_mem.port_type)
         if ptype_dict is None:
             ptype_dict = self[pg_mem.port_type] = \

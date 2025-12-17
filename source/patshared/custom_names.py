@@ -1,10 +1,10 @@
 class _CustomAndOver:
+    """Custom name and optional pretty-names recorded at save time."""
     custom: str
-    'the saved custom name'
+    "The saved custom name."
     above_pretty: set[str]
-    '''Set of JACK pretty-name(s) of the subject when custom name was saved.
-    This way, custom name can be set as JACK pretty name 
-    when the existing JACK pretty-name is in above_pretty.'''
+    """Set of JACK pretty-names present when the custom name was saved.
+    If the current pretty-name is in this set, the custom name applies."""
     
     def __init__(self, custom: str, *aboves: str):
         self.custom = custom
@@ -20,7 +20,12 @@ class _CustomAndOver:
 
 
 class CustomNames:
-    'Container for internal custom names'
+    """Container for custom names of groups and ports.
+
+    Maps group and port identifiers to `_CustomAndOver` holding the saved
+    custom name and (optionally) the pretty-names that were present when
+    the custom name was recorded.
+    """
     def __init__(self):
         self.groups = dict[str, _CustomAndOver]()
         self.ports = dict[str, _CustomAndOver]()
@@ -32,6 +37,11 @@ class CustomNames:
         return custom_names
     
     def eat_json(self, json_dict: dict[str, dict[str, list[str]]]):
+        """Populate this object from a JSON-like dict structure.
+
+        Expected keys are `groups` and `ports`, each mapping names to either
+        a string or a list (custom name plus optional pretty-names).
+        """
         if not isinstance(json_dict, dict):
             return
 
@@ -52,6 +62,9 @@ class CustomNames:
                     self.ports[port_name] = _CustomAndOver(*custom)
     
     def to_json(self) -> dict[str, dict[str, str | list[str]]]:
+        """Return a JSON-serializable representation with `groups` and
+        `ports` mappings suitable for writing to disk.
+        """
         gp_dict = dict[str, str | list[str]]()
         pt_dict = dict[str, str | list[str]]()
         for group_name, ctov in self.groups.items():
@@ -63,6 +76,12 @@ class CustomNames:
     
     def _save_el(self, is_group: bool, el_name: str,
                  custom_name: str, *over_prettys: str):
+        """Internal helper: save or remove a custom name for a group/port.
+
+        If `custom_name` is empty the name is removed, otherwise the stored
+        `_CustomAndOver` is created or updated with the provided
+        `over_prettys`.
+        """
         d = self.groups if is_group else self.ports
 
         if custom_name:
@@ -77,14 +96,19 @@ class CustomNames:
     
     def save_group(self, group_name: str, custom_name: str,
                    *over_prettys: str):
+        """Convenience wrapper to save a custom name for `group_name`.
+        """
         self._save_el(True, group_name, custom_name, *over_prettys)
     
     def save_port(self, port_name: str, custom_name: str, *over_prettys: str):
+        """Convenience wrapper to save a custom name for `port_name`.
+        """
         self._save_el(False, port_name, custom_name, *over_prettys)
 
     def custom_group(self, group_name: str, cur_pretty_name='') -> str:
-        '''return the group (client) custom name if conditions are full,
-        otherwire empty string'''
+        """Return the stored custom group name if it applies to
+        the current pretty-name, otherwise return empty string.
+        """
         ctov = self.groups.get(group_name)
         if ctov is None:
             return ''
@@ -100,8 +124,9 @@ class CustomNames:
         return ctov.custom
     
     def custom_port(self, port_name: str, cur_pretty_name='') -> str:
-        '''return the port pretty_name if conditions are full,
-        otherwire empty string'''
+        """Return the stored custom port name if it applies to
+        the current pretty-name, otherwise return empty string.
+        """
         ctov = self.ports.get(port_name)
         if ctov is None:
             return ''

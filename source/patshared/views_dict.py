@@ -5,6 +5,11 @@ from .group_pos import GroupPos
 
 
 class ViewData:
+    """Per-view configuration: name, default port-types and group positions.
+
+    The `ptvs` mapping stores, for each `PortTypesViewFlag`, a mapping
+    from group name to its `GroupPos` instance.
+    """
     name: str
     default_port_types_view: PortTypesViewFlag
     is_white_list: bool
@@ -15,7 +20,7 @@ class ViewData:
         self.is_white_list = False
         self.ptvs = dict[PortTypesViewFlag, dict[str, GroupPos]]()
     
-    def __eq__(self, view_data: 'ViewData') -> bool:        
+    def __eq__(self, view_data: 'ViewData') -> bool: # type:ignore
         return (self.name == view_data.name
                 and (self.default_port_types_view
                      is view_data.default_port_types_view)
@@ -36,6 +41,7 @@ class ViewData:
     
 
 class ViewsDict(dict[int, ViewData]):
+    """Mapping index -> `ViewData` with JSON helpers."""
     def __init__(self, ensure_one_view=True):
         super().__init__()
         self._ensure_one_view = ensure_one_view
@@ -59,8 +65,12 @@ class ViewsDict(dict[int, ViewData]):
         return views_dict
 
     def eat_views_dict_datas(self, views_dict: 'ViewsDict'):
-        '''For all view, take all property of the incoming views_dict
-        except group positions.'''
+        """Copy non-position properties from another `ViewsDict`.
+
+        For each view present in this mapping, copy name, default port types
+        and white-list flag from the corresponding view in `views_dict`.
+        Group positions are intentionally not copied.
+        """
 
         for view_num, view_data in self.items():
             vdata = views_dict.get(view_num)
@@ -77,12 +87,19 @@ class ViewsDict(dict[int, ViewData]):
             self[1] = ViewData(PortTypesViewFlag.ALL)
     
     def first_view_num(self) -> Optional[int]:
-        '''if this instance has "ensure_one_view", 
-        we are sure this returns a valid int.'''
+        """Return the first view index.
+
+        Guaranteed when `ensure_one_view` is True.
+        """
         for key in self.keys():
             return key
     
     def eat_json_list(self, json_list: list, clear=False):
+        """Populate views from the session JSON list structure.
+
+        The `json_list` is expected to be a list of view dicts. If `clear`
+        is True the existing mapping is cleared before loading.
+        """
         if not isinstance(json_list, list):
             return
         
@@ -143,6 +160,10 @@ class ViewsDict(dict[int, ViewData]):
             self[1] = ViewData(PortTypesViewFlag.ALL)
                     
     def to_json_list(self) -> list[dict[str, Any]]:
+        """Return a JSON-serializable list representing all views.
+
+        The list is sorted by view index to make saved files deterministic.
+        """
         self._sort_views_by_index()
         
         out_list = list[dict[str, Any]]()
@@ -192,8 +213,11 @@ class ViewsDict(dict[int, ViewData]):
         ptv_dict[gpos.group_name] = gpos
 
     def short_data_states(self) -> dict[int, dict[str, Union[str, bool]]]:
-        '''Used by RaySession to send short OSC str messages
-        about view datas'''
+        """Return a compact representation of views for short OSC messages.
+
+        Returns a mapping index -> {name, default_ptv, is_white_list} with
+        only fields that differ from defaults included.
+        """
 
         out_dict = dict[int, dict[str, Union[str, bool]]]()
         

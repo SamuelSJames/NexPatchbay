@@ -1,5 +1,5 @@
 class JackMetadata:
-    'Jack property common keys + custom'
+    """Constants for JACK metadata keys."""
 
     _PREFIX = "http://jackaudio.org/metadata/"
     CONNECTED = _PREFIX + "connected"
@@ -15,11 +15,16 @@ class JackMetadata:
         
 
 class JackMetadatas(dict[int, dict[str, str]]):
+    """Mapping of client UUID to metadata dict."""
     def __init__(self):
         super().__init__()
     
     def add(self, uuid: int, key: str, value: str):
-        'add a metadata to the bank, or remove it if value is empty string'
+        """Add or remove a metadata entry for `uuid`.
+
+        If `value` is an empty string the key is removed. Passing an empty
+        `uuid` will clear the whole mapping.
+        """
         if not uuid:
             self.clear()
             return
@@ -38,6 +43,7 @@ class JackMetadatas(dict[int, dict[str, str]]):
             uuid_dict.pop(key)
     
     def str_for_key(self, uuid: int, key: str) -> str:
+        """Return the metadata value for `key` or empty string if absent."""
         uuid_dict = self.get(uuid)
         if uuid_dict is None:
             return ''
@@ -45,11 +51,14 @@ class JackMetadatas(dict[int, dict[str, str]]):
         return uuid_dict.get(key, '')
     
     def pretty_name(self, uuid: int) -> str:
+        """Convenience: return PRETTY_NAME for `uuid` or empty string."""
         return self.str_for_key(uuid, JackMetadata.PRETTY_NAME)
         
     def icon_name(self, uuid: int) -> str:
+        """Convenience: return ICON_NAME for `uuid` or empty string."""
         return self.str_for_key(uuid, JackMetadata.ICON_NAME)
 
     def remove_uuid(self, uuid: int):
+        """Remove all metadata for `uuid` if present."""
         if uuid in self:
             self.pop(uuid)

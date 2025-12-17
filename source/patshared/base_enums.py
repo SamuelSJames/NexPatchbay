@@ -3,12 +3,23 @@ from typing import Iterator
 
 
 class PortMode(IntFlag):
+    """Direction flags used for ports and box layouts.
+
+    For individual ports, use `INPUT`, `OUTPUT` or `NULL` (a single port
+    cannot be `BOTH`). The `BOTH` value is intended for boxes/groups that
+    contain both input and output ports and is useful when describing
+    layout or group visibility. Helper methods such as `opposite` and
+    `in_out_both` are provided for common operations. Note that
+    `in_out_both()` yields modes useful for iterating over input/output
+    and box-level `BOTH` contexts.
+    """
     NULL = 0x00
     INPUT = 0x01
     OUTPUT = 0x02
     BOTH = INPUT | OUTPUT
     
     def opposite(self) -> 'PortMode':
+        """Return the opposite mode (INPUT <-> OUTPUT, BOTH <-> NULL)."""
         if self is PortMode.INPUT:
             return PortMode.OUTPUT
         if self is PortMode.OUTPUT:
@@ -21,12 +32,19 @@ class PortMode(IntFlag):
 
     @staticmethod
     def in_out_both() -> Iterator['PortMode']:
+        """Yield modes, useful for iterating input, output and both."""
         yield PortMode.INPUT
         yield PortMode.OUTPUT
         yield PortMode.BOTH
 
 
 class PortType(IntFlag):
+    """Enumeration of port technologies.
+
+    Indicates the underlying technology of a port (Audio JACK, JACK MIDI,
+    ALSA MIDI, Video, or Parameter (not used)). Provides a convenience `is_jack`
+    property to detect JACK-based types.
+    """
     NULL = 0x00
     AUDIO_JACK = 0x01
     MIDI_JACK = 0x02
@@ -34,19 +52,23 @@ class PortType(IntFlag):
     VIDEO = 0x08
     PARAMETER = 0x10
     
-    def _missing_(self) -> 'PortType':
+    @classmethod
+    def _missing_(cls, value) -> 'PortType':
+        """Return default `PortType.NULL` for unknown values."""
         return PortType.NULL
     
     @property
     def is_jack(self) -> bool:
+        """Return True for JACK-based port types."""
         return self in (self.AUDIO_JACK, self.MIDI_JACK)
 
 
 class PortSubType(IntFlag):
-    '''a2j ports are MIDI ports, we only specify a decoration for them.
-    CV ports are audio ports, but we prevent to connect an output CV port
-    to a regular audio port to avoid material destruction, CV ports also
-    look different, simply because this is absolutely not the same use.'''
+    """Annotates port sub-types such as CV (control voltage) or a2j MIDI.
+
+    CV ports are treated as audio ports but have connection restrictions.
+    A2J indicates ports originating from the ALSA-to-JACK bridge.
+    """
     REGULAR = 0x01
     CV = 0x02
     A2J = 0x04
@@ -64,29 +86,25 @@ class BoxType(Enum):
     INTERNAL = 8
     
     def __lt__(self, other: 'BoxType'):
+        """Compare BoxType by their integer value."""
         return self.value < other.value
     
 
 class BoxLayoutMode(IntEnum):
-    'Define the way ports are put in a box'
+    """Define how ports are arranged inside a box."""
 
     AUTO = 0
     '''Choose the layout between HIGH or LARGE
     within the box area.'''
     
     HIGH = 1
-    '''In the case there are only INPUT or only OUTPUT ports,
-    the title will be on top of the box.
-    In the case there are both INPUT and OUTPUT ports,
-    ports will be displayed from top to bottom, whatever they
-    are INPUT or OUTPUT.'''
+    """When only INPUT or only OUTPUT ports exist the title is on top.
+    If both types are present, ports are displayed top-to-bottom."""
     
     LARGE = 2
-    '''In the case there are only INPUT or only OUTPUT ports,
-    the title will be on a side of the box.
-    In the case there are both INPUT and OUTPUT ports,
-    ports will be displayed in two columns, left for INPUT, 
-    right for OUTPUT.'''
+    """When only INPUT or only OUTPUT ports exist the title is on a side.
+    If both types are present, ports are displayed in two columns
+    (left = INPUT, right = OUTPUT)."""
 
 
 class BoxFlag(IntFlag):
@@ -115,6 +133,9 @@ class PortTypesViewFlag(IntFlag):
     ALL = AUDIO | MIDI | CV | VIDEO | ALSA
 
     def to_config_str(self):
+        """Return configuration string for this flag set.
+
+        Examples: 'ALL' or 'AUDIO|MIDI'."""
         if self is PortTypesViewFlag.ALL:
             return 'ALL'
 
@@ -129,6 +150,7 @@ class PortTypesViewFlag(IntFlag):
     
     @staticmethod
     def from_config_str(input_str: str) -> 'PortTypesViewFlag':
+        """Parse a config string into a `PortTypesViewFlag` value."""
         if not isinstance(input_str, str):
             return PortTypesViewFlag.NONE
 
@@ -149,25 +171,26 @@ class PortTypesViewFlag(IntFlag):
 
 
 class Naming(Flag):
-    '''Define the way clients and ports should be named.'''
+    """Define how clients and ports should be named"""
     TRUE_NAME = 0x0
-    'True JACK or ALSA item name'
+    "True JACK or ALSA item name."
     
     GRACEFUL = 0x1
-    '''Shorter than TRUE_NAME, more readable name without underscores
-    and with custom arrangements depending on the client name.'''
+    """Shorter, more readable name (no underscores) with
+    custom arrangements."""
     
     CUSTOM = 0x2
-    'The custom name saved when user renames a port or a group'
+    "Custom name saved when user renames a port or group."
     
     METADATA_PRETTY = 0x4
-    '''The pretty name contained in JACK metadatas
-    (http://jackaudio.org/metadata/pretty-name)'''
+    """Pretty name from JACK metadata
+    (http://jackaudio.org/metadata/pretty-name)"""
     
-    ALL = METADATA_PRETTY|CUSTOM|GRACEFUL
+    ALL = METADATA_PRETTY | CUSTOM | GRACEFUL
 
     @classmethod
     def from_config_str(cls, string: str) -> 'Naming':
+        """Convert a string like 'GRACEFUL|CUSTOM' into a `Naming` value."""
         naming = cls.TRUE_NAME
         for s in string.split('|'):
             try:
@@ -179,15 +202,14 @@ class Naming(Flag):
 
 class PrettyDiff(Flag):
     NO_DIFF = 0x0
-    '''There is no difference between internal pretty names
-    and JACK pretty names'''
+    """No difference between internal pretty names and JACK's pretty names."""
     
     NON_EXPORTED = 0x1
-    'Some custom names are not exported to JACK'
+    "Some custom names are not exported to JACK."
     
     NON_IMPORTED = 0x2
-    'Some JACK pretty names are not present in custom names'
+    "Some JACK pretty names are not present in custom names."
     
     NON_BOTH = 0x3
-    '''Some custom names are not exported to JACK,
-    and some JACK pretty names are not present in custom names'''
+    """Some custom names are not exported to JACK, and some JACK pretty
+    names are not present in custom names."""

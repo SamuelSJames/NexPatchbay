@@ -3,9 +3,7 @@ from typing import Any
 
 
 def from_json_to_str(input_dict: dict[str, Any]) -> str:
-    '''for a canvas json dict ready to be saved,
-    return a str containing the json contents with a 2 chars indentation
-    and xy pos grouped on the same line.'''
+    """Format a canvas JSON dict to a human-friendly string."""
 
     PATH_OPENING = 0
     PATH_IN = 1
