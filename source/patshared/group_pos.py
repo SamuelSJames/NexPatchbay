@@ -146,11 +146,11 @@ class GroupPos:
         for port_mode in PortMode.in_out_both():
             if port_mode is PortMode.INPUT:
                 if GroupPos.is_point(in_xy):
-                    gpos.boxes[port_mode].pos = in_xy
+                    gpos.boxes[port_mode].pos = tuple(in_xy)
                 wrapped = bool(gpos.flags & GroupPosFlag.WRAPPED_INPUT)
             elif port_mode is PortMode.OUTPUT:
                 if GroupPos.is_point(out_xy):
-                    gpos.boxes[port_mode].pos = out_xy
+                    gpos.boxes[port_mode].pos = tuple(out_xy)
                 wrapped = bool(gpos.flags & GroupPosFlag.WRAPPED_OUTPUT)
             else:
                 if GroupPos.is_point(null_xy):
