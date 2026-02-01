@@ -32,12 +32,14 @@ class Port:
         self.uuid = uuid
         self.subtype = PortSubType.REGULAR
 
-        if (self.type is PortType.AUDIO_JACK
-                and self.flags & JackPortFlag.IS_CONTROL_VOLTAGE):
-            self.subtype = PortSubType.CV
-        elif (self.type is PortType.MIDI_JACK
-                and self.full_name.startswith(('a2j:', 'Midi-Bridge:'))):
-            self.subtype = PortSubType.A2J
+        match port_type:
+            case PortType.AUDIO_JACK:
+                if (flags & JackPortFlag.IS_CONTROL_VOLTAGE
+                        or self.mdata_signal_type == 'CV'):
+                    self.subtype = PortSubType.CV
+            case PortType.MIDI_JACK:
+                if self.full_name.startswith(('a2j:', 'Midi-Bridge:')):
+                    self.subtype = PortSubType.A2J
 
         self.conns_hidden_in_canvas = set[Connection]()
 
