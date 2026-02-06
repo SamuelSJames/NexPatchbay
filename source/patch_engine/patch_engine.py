@@ -475,7 +475,12 @@ class PatchEngine:
         if self.client is None:
             return
         
-        state, pos_dict = self.client.transport_query()
+        try:
+            state, pos_dict = self.client.transport_query()
+        except BaseException as e:
+            _logger.warning('Failed to send transport position, '
+                            f'transport_query() failed\n{str(e)}')
+            return
         
         if (self.transport_wanted is TransportWanted.STATE_ONLY
                 and bool(state) == self.last_transport_pos.rolling):
