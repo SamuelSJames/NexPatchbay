@@ -290,6 +290,7 @@ class PatchEngine:
                 case PatchEvent.BLOCKSIZE_CHANGED:
                     buffer_size: int = event_arg #type:ignore
                     self.buffer_size = buffer_size
+                    print('non mé tu déconnness làà oh !!!', self.buffer_size)
                     self.peo.send_buffersize(self.buffer_size)
                 
                 case PatchEvent.SAMPLERATE_CHANGED:
@@ -532,6 +533,7 @@ class PatchEngine:
         if self.client is None:
             return
         
+        print('Je vous demainde dfe changer buffersize', blocksize)
         self.client.blocksize = blocksize
              
     def exit(self):
