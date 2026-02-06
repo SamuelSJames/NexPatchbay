@@ -698,6 +698,31 @@ class PatchEngine:
         @self.client.set_blocksize_callback
         def blocksize(size: int):
             _logger.debug(f'buffer size changed to {size}')
+            if self.client is not None:
+                for port in list_ports(self.client):
+                    # flags = jack._lib.jack_port_flags(port._ptr) #type:ignore
+                    # port_name = port.name
+                    # port_uuid = port.uuid
+                    # port_type = PortType.NULL
+                    # if port.is_audio:
+                    #     port_type = PortType.AUDIO_JACK
+                    # elif port.is_midi:
+                    #     port_type = PortType.MIDI_JACK
+
+                    # known_uuids.add(port_uuid)
+
+                    # self.ports.append(
+                    #     PortData(port_name, port_type, flags, port_uuid))
+
+                    # client_names.add(port_name.partition(':')[0])
+                        
+                    if port.is_input:
+                        continue
+
+                    # this port is output, list its connections
+                    for conn_port in list_all_connections(self.client, port):
+                        print('connes', port.name, '->', conn_port.name)
+                        # self.connections.append((port_name, conn_port.name))
             self.patch_event_queue.add(PatchEvent.BLOCKSIZE_CHANGED, size)
             
         @self.client.set_samplerate_callback
