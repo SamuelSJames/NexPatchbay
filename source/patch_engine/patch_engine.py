@@ -695,10 +695,12 @@ class PatchEngine:
             
         @self.client.set_blocksize_callback
         def blocksize(size: int):
+            _logger.debug(f'buffer size changed to {size}')
             self.patch_event_queue.add(PatchEvent.BLOCKSIZE_CHANGED, size)
             
         @self.client.set_samplerate_callback
         def samplerate(samplerate: int):
+            _logger.debug(f'samplerate changed to {samplerate}')
             self.patch_event_queue.add(
                 PatchEvent.SAMPLERATE_CHANGED, samplerate)
             
