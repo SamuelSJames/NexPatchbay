@@ -291,7 +291,7 @@ class PatchEngine:
                     buffer_size: int = event_arg #type:ignore
                     self.buffer_size = buffer_size
                     print('non mé tu déconnness làà oh !!!', self.buffer_size)
-                    self.peo.send_buffersize(self.buffer_size)
+                    # self.peo.send_buffersize(self.buffer_size)
                     self._collect_graph()
                     self.peo.server_restarted()
                 
