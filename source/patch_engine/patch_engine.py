@@ -826,6 +826,7 @@ class PatchEngine:
 
             # this port is output, list its connections
             for conn_port in list_all_connections(self.client, port):
+                print('ououoh connn', port_name, conn_port.name)
                 self.connections.append((port_name, conn_port.name))
         
         for client_name in client_names:
