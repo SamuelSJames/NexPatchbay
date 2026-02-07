@@ -290,10 +290,7 @@ class PatchEngine:
                 case PatchEvent.BLOCKSIZE_CHANGED:
                     buffer_size: int = event_arg #type:ignore
                     self.buffer_size = buffer_size
-                    print('non mé tu déconnness làà oh !!!', self.buffer_size)
-                    # self.peo.send_buffersize(self.buffer_size)
-                    self._collect_graph()
-                    self.peo.server_restarted()
+                    self.peo.send_buffersize(self.buffer_size)
                 
                 case PatchEvent.SAMPLERATE_CHANGED:
                     samplerate: int = event_arg #type:ignore
@@ -538,11 +535,9 @@ class PatchEngine:
     
     def set_buffer_size(self, blocksize: int):
         if self.client is None:
-            return
-        
-        print('Je vous demainde dfe changer buffersize', blocksize)
+            return        
         self.client.blocksize = blocksize
-             
+
     def exit(self):
         self._save_uuid_pretty_names()
         
@@ -705,31 +700,6 @@ class PatchEngine:
         @self.client.set_blocksize_callback
         def blocksize(size: int):
             _logger.debug(f'buffer size changed to {size}')
-            if self.client is not None:
-                for port in list_ports(self.client):
-                    # flags = jack._lib.jack_port_flags(port._ptr) #type:ignore
-                    # port_name = port.name
-                    # port_uuid = port.uuid
-                    # port_type = PortType.NULL
-                    # if port.is_audio:
-                    #     port_type = PortType.AUDIO_JACK
-                    # elif port.is_midi:
-                    #     port_type = PortType.MIDI_JACK
-
-                    # known_uuids.add(port_uuid)
-
-                    # self.ports.append(
-                    #     PortData(port_name, port_type, flags, port_uuid))
-
-                    # client_names.add(port_name.partition(':')[0])
-                        
-                    if port.is_input:
-                        continue
-
-                    # this port is output, list its connections
-                    for conn_port in list_all_connections(self.client, port):
-                        print('connes', port.name, '->', conn_port.name)
-                        # self.connections.append((port_name, conn_port.name))
             self.patch_event_queue.add(PatchEvent.BLOCKSIZE_CHANGED, size)
             
         @self.client.set_samplerate_callback
@@ -826,7 +796,6 @@ class PatchEngine:
 
             # this port is output, list its connections
             for conn_port in list_all_connections(self.client, port):
-                print('ououoh connn', port_name, conn_port.name)
                 self.connections.append((port_name, conn_port.name))
         
         for client_name in client_names:
