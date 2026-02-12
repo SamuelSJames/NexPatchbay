@@ -674,6 +674,37 @@ class PatchEngine:
             else:
                 self.patch_event_queue.add(
                     PatchEvent.PORT_REMOVED, port_name)
+            
+            # if not register:
+            #     return
+            
+            if self.client is None:
+                return
+            
+            # With PipeWire, some ports can be added (re-added in reality)
+            # with already existing connections, in the case of
+            # buffersize (quantum) change.
+            # So we check here existing connections of the port
+            try:
+                for cport in self.client.get_all_connections(port):
+                    cport_name = cport.name                    
+                    if register:
+                        event = PatchEvent.CONNECTION_ADDED
+                    else:
+                        event = PatchEvent.CONNECTION_REMOVED
+                    
+                    if port.is_output:
+                        event_args = (port_name, cport_name)
+                    else:
+                        event_args = (cport_name, port_name)
+                    
+                    self.patch_event_queue.add(event, *event_args)
+
+            except BaseException as e:
+                _logger.debug(
+                    f'New port {port_name} seems to already have connections '
+                    f'but getting theses ports failed\n'
+                    f'{str(e)}')
 
         @self.client.set_port_connect_callback
         def port_connect(port_a: jack.Port, port_b: jack.Port, connect: bool):

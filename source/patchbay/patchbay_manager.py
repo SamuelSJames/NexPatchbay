@@ -36,7 +36,6 @@ from .conns_clipboard import ConnClipboard
 from .calbacker import Callbacker
 from .patchichi_export import export_to_patchichi_json
 
-
 _translate = QGuiApplication.translate
 _logger = logging.getLogger(__name__)
 
@@ -1191,7 +1190,7 @@ class PatchbayManager:
         return group.group_id
 
     @later_by_batch(draw_group=True, clear_conns=True)
-    def remove_port(self, name: str) -> Union[int, None]:
+    def remove_port(self, name: str) -> int | None:
         '''remove a port from name and return its group_id'''
         port = self.get_port_from_name(name)
         if port is None:

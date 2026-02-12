@@ -21,13 +21,14 @@ from typing import TYPE_CHECKING, Optional, Iterator
 
 from qtpy.QtCore import Qt
 from qtpy.QtGui import (QColor, QLinearGradient,
-                         QPainterPath, QPen, QBrush)
+                        QPainterPath, QPen, QBrush)
 from qtpy.QtWidgets import QGraphicsPathItem
 
 from patshared import PortType, PortMode
 from .init_values import (
     ConnectionThemeState,
     BoxHidding,
+    PortObject,
     canvas,
     options,
     CanvasItemType,
@@ -76,9 +77,12 @@ class GroupedLinesWidget(QGraphicsPathItem):
     def __init__(self, group_out_id: int, group_in_id: int,
                  port_type: PortType,
                  theme_state: ConnectionThemeState):
-        ''' Class for connection line widget '''
+        ''' Class for group of connections lines widget.
+        Cointains in one widget all connections of same type 
+        (audio, midi, ...) from the same group out to the same group in,
+        with the same theme state (Normal, selected, disconnecting).'''
         canvas.ensure_init()
-        QGraphicsPathItem.__init__(self)
+        super().__init__()
 
         self._group_out_id = group_out_id
         self._group_in_id = group_in_id
@@ -102,6 +106,9 @@ class GroupedLinesWidget(QGraphicsPathItem):
         else:
             self.setZValue(Zv.LINE.value)
 
+        self._box_hidding_out = BoxHidding.NONE
+        self._box_hidding_in = BoxHidding.NONE
+
         # get box_out and box_in
         group_out = canvas.get_group(group_out_id)
         group_in = canvas.get_group(group_in_id)
@@ -119,9 +126,6 @@ class GroupedLinesWidget(QGraphicsPathItem):
                 break
         else:
             return
-
-        self._box_hidding_out = BoxHidding.NONE
-        self._box_hidding_in = BoxHidding.NONE
         
         move_box_out = canvas.scene.move_boxes.get(box_out)
         if move_box_out is not None:
@@ -172,7 +176,7 @@ class GroupedLinesWidget(QGraphicsPathItem):
 
             to_update_type = to_update.get(conn.port_type)
             if to_update_type is None:
-                to_update_type = set()
+                to_update_type = set[ConnectionThemeState]()
                 to_update[conn.port_type] = to_update_type
             to_update_type.add(theme_state)
 
@@ -213,6 +217,22 @@ class GroupedLinesWidget(QGraphicsPathItem):
                     
             for attr_to_del in attrs_to_del:
                 pt_dict.__delitem__(attr_to_del)
+
+    @staticmethod
+    def port_removed(port: PortObject):
+        if port.port_mode is PortMode.OUTPUT:
+            for connection in canvas.list_connections(
+                    group_out_id=port.group_id):
+                if connection.port_out_id is port.port_id:
+                    _groups_to_check.add(
+                        (port.group_id, connection.group_in_id))
+        
+        elif port.port_mode is PortMode.INPUT:
+            for connection in canvas.list_connections(
+                    group_in_id=port.group_id):
+                if connection.port_in_id is port.port_id:
+                    _groups_to_check.add(
+                        (connection.group_out_id, port.group_id))
 
     @staticmethod
     def widgets_for_box(
