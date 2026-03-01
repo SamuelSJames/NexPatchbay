@@ -16,9 +16,9 @@ class BarWidgetJack(QWidget):
         super().__init__(parent)
         self.ui = JackUiForm()
         self.ui.setupUi(self)
-        
+
         self.mng: 'PatchbayManager' = None # type:ignore
-        
+
         self._waiting_buffer_change = False
         self._buffer_change_from_osc = False
 
@@ -36,10 +36,10 @@ class BarWidgetJack(QWidget):
         self._samplerate = 48000
         self._current_buffer_size = self.ui.comboBoxBuffer.currentData()
         self._xruns_counter = 0
-        
+
         self._jack_running = True
         self.ui.labelJackNotStarted.setVisible(False)
-        
+
     def _set_latency(self, buffer_size=None, samplerate=None):
         if buffer_size is None:
             buffer_size = self._current_buffer_size
@@ -53,7 +53,7 @@ class BarWidgetJack(QWidget):
         self._samplerate = samplerate
         str_sr = str(samplerate)
         str_samplerate = str_sr
-        
+
         # separate the three last digits from begin with a space
         # 48000 -> 48 000
         if len(str_sr) > 3:
@@ -116,7 +116,7 @@ class BarWidgetJack(QWidget):
 
         self.ui.comboBoxBuffer.setEnabled(False)
         self._waiting_buffer_change = True
-        
+
         if self.mng is not None:
             self.mng.change_buffersize(self.ui.comboBoxBuffer.currentData())
         # self.buffer_size_change_order.emit(
@@ -134,7 +134,7 @@ class BarWidgetJack(QWidget):
 
     def set_jack_running(self, yesno: bool, use_alsa_midi=False):
         self._jack_running = yesno
-        
+
         self.ui.labelJackNotStarted.setVisible(not yesno)
         if not yesno:
             self.ui.labelBuffer.setVisible(False)
@@ -144,14 +144,14 @@ class BarWidgetJack(QWidget):
             self.ui.labelLatency.setVisible(False)
             self.ui.pushButtonXruns.setVisible(False)
             self.ui.progressBarDsp.setVisible(False)
-            
+
     def change_tools_displayed(self, tools_displayed: ToolDisplayed):
         if not self._jack_running:
             self.set_jack_running(False)
             return
 
         SR_AND_LT = ToolDisplayed.SAMPLERATE | ToolDisplayed.LATENCY
-    
+
         self.ui.labelBuffer.setVisible(
             bool(tools_displayed & ToolDisplayed.BUFFER_SIZE))
         self.ui.comboBoxBuffer.setVisible(

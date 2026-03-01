@@ -11,7 +11,7 @@ class TransportPosition:
     beat: int
     tick: int
     beats_per_minutes: float
-    
+
 
 class TransportWanted(IntEnum):
     """How much transport information should be sent to external
@@ -23,7 +23,7 @@ class TransportWanted(IntEnum):
     """
     NO = 0
     'do not send any transport info'
-    
+
     STATE_ONLY = 1
     'send transport info only when play/pause changed'
 

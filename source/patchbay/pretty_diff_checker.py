@@ -13,12 +13,12 @@ class PrettyDiffChecker:
         self.metadatas = self.mng.jack_metadatas
         self.pretty_names = self.mng.custom_names
         self.client_name_uuids = self.mng.client_uuids
-        
+
         self.clients_diff = dict[int, PrettyDiff]()
         self.ports_diff = dict[int, PrettyDiff]()
         self.pretty_diff = PrettyDiff.NO_DIFF
         self.full_update()
-    
+
     def uuid_change(self, uuid: int):
         change_diff_old = PrettyDiff.NO_DIFF
         change_diff_new = PrettyDiff.NO_DIFF
@@ -37,7 +37,7 @@ class PrettyDiffChecker:
                     self.metadatas.pretty_name(uuid))
                 change_diff_new = self.clients_diff[uuid]
                 break
-        
+
         elif uuid in self.ports_diff:
             change_diff_old = self.ports_diff[uuid]
             port = self.mng.get_port_from_uuid(uuid)
@@ -47,7 +47,7 @@ class PrettyDiffChecker:
                     self.pretty_names.custom_port(port.full_name),
                     self.metadatas.pretty_name(uuid))
                 change_diff_new = self.ports_diff[uuid]
-        
+
         else:
             port = self.mng.get_port_from_uuid(uuid)
             if port is None:
@@ -55,7 +55,7 @@ class PrettyDiffChecker:
                         in self.client_name_uuids.items():
                     if client_uuid != uuid:
                         continue
-                    
+
                     self.clients_diff[uuid] = self._get_diff(
                         self.pretty_names.custom_group(client_name),
                         self.metadatas.pretty_name(uuid))
@@ -66,7 +66,7 @@ class PrettyDiffChecker:
                     self.pretty_names.custom_port(port.full_name),
                     self.metadatas.pretty_name(uuid))
                 change_diff_new = self.ports_diff[uuid]
-        
+
         # In many cases, no need to reevaluate all pretty names change states
         # to know the diff state
         match glob_diff_old:
@@ -82,38 +82,38 @@ class PrettyDiffChecker:
                     glob_diff_new = self.get_glob_diff()
                 else:
                     glob_diff_new = glob_diff_old | change_diff_new
-        
+
         if glob_diff_new is not glob_diff_old:
             if self.mng.options_dialog is not None:
                 self.mng.options_dialog.change_pretty_diff(glob_diff_new)
 
         self.pretty_diff = glob_diff_new
-    
+
     def client_pretty_name_changed(self, client_name: str):
         client_uuid = self.client_name_uuids.get(client_name)
         if client_uuid is None:
             return
 
         self.uuid_change(client_uuid)
-        
+
     def port_pretty_name_changed(self, port_name: str):
         port = self.mng.get_port_from_name(port_name)
         if port is None or not port.type.is_jack:
             return
-        
+
         self.uuid_change(port.uuid)
-    
+
     def _get_diff(self, pretty_name: str, jack_pretty_name: str):
         if pretty_name == jack_pretty_name:
             return PrettyDiff.NO_DIFF
-        
+
         if pretty_name and jack_pretty_name:
             return PrettyDiff.NON_BOTH
-        
+
         if pretty_name:
             return PrettyDiff.NON_EXPORTED
         return PrettyDiff.NON_IMPORTED
-    
+
     def full_update(self):
         self.clients_diff.clear()
         self.ports_diff.clear()
@@ -122,16 +122,16 @@ class PrettyDiffChecker:
             self.clients_diff[client_uuid] = self._get_diff(
                 self.pretty_names.custom_group(client_name),
                 self.metadatas.pretty_name(client_uuid))
-        
+
         for group in self.mng.groups:
             for port in group.ports:
                 if not port.type.is_jack:
                     continue
-                
+
                 self.ports_diff[port.uuid] = self._get_diff(
                     self.pretty_names.custom_port(port.full_name),
                     self.metadatas.pretty_name(port.uuid))
-        
+
         self.pretty_diff = self.get_glob_diff()
         if self.mng.options_dialog:
             self.mng.options_dialog.change_pretty_diff(self.pretty_diff)
@@ -142,11 +142,11 @@ class PrettyDiffChecker:
         for uuid, diff in self.clients_diff.items():
             if diff is not PrettyDiff.NO_DIFF:
                 out_dict['client_diffs'][uuid] = diff
-        
+
         for uuid, diff in self.ports_diff.items():
             if diff is not PrettyDiff.NO_DIFF:
                 out_dict['port_diffs  '][uuid] = diff
-        
+
         return out_dict
 
     def get_glob_diff(self) -> PrettyDiff:
@@ -155,9 +155,9 @@ class PrettyDiffChecker:
             glob_diff |= pretty_diff
             if glob_diff is PrettyDiff.NON_BOTH:
                 return glob_diff
-            
+
         for pretty_diff in self.ports_diff.values():
             glob_diff |= pretty_diff
             if glob_diff is PrettyDiff.NON_BOTH:
                 return glob_diff
-        return glob_diff 
+        return glob_diff

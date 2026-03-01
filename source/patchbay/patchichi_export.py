@@ -16,7 +16,7 @@ _logger = logging.getLogger(__name__)
 def _export_port_list_to_patchichi(mng: 'PatchbayManager') -> str:
     def slcol(input_str: str) -> str:
         return input_str.replace(':', '\\:')
-    
+
     contents = ''
 
     gps_and_ports = list[tuple[str, list[Port]]]()
@@ -36,9 +36,9 @@ def _export_port_list_to_patchichi(mng: 'PatchbayManager') -> str:
 
     for group_name, port_list in gps_and_ports:
         port_list.sort(key=operator.attrgetter('port_id'))
-            
+
     for group_name, port_list in gps_and_ports:
-        gp_written = False              
+        gp_written = False
         last_type_and_mode = (PortType.NULL, PortMode.NULL)
         physical = False
         terminal = False
@@ -57,7 +57,7 @@ def _export_port_list_to_patchichi(mng: 'PatchbayManager') -> str:
                     if group.client_icon:
                         group_attrs.append(
                             f'CLIENT_ICON={slcol(group.client_icon)}')
-                        
+
                     if group.mdata_icon:
                         group_attrs.append(
                             f'ICON_NAME={slcol(group.mdata_icon)}')
@@ -93,14 +93,14 @@ def _export_port_list_to_patchichi(mng: 'PatchbayManager') -> str:
 
                 contents += f':{port.mode.name}\n'
                 last_type_and_mode = (port.type, port.mode)
-            
+
             if port.mdata_signal_type != signal_type:
                 if port.mdata_signal_type:
                     contents += \
                         f':SIGNAL_TYPE={slcol(port.mdata_signal_type)}\n'
                 else:
                     contents += ':~SIGNAL_TYPE\n'
-            
+
             if port.mdata_portgroup != pg_name:
                 if port.mdata_portgroup:
                     contents += \
@@ -115,7 +115,7 @@ def _export_port_list_to_patchichi(mng: 'PatchbayManager') -> str:
                 port_short_name = port.full_name.partition(':')[2]
 
             contents += f'{port_short_name}\n'
-            
+
             if port.mdata_pretty_name or port.order:
                 port_attrs = list[str]()
                 if port.mdata_pretty_name:
@@ -134,7 +134,7 @@ def export_to_patchichi_json(
         editor_text = _export_port_list_to_patchichi(mng)
 
     file_dict = dict[str, Any]()
-    file_dict['VERSION'] = (0, 3)       
+    file_dict['VERSION'] = (0, 3)
     file_dict['editor_text'] = editor_text
     file_dict['connections'] = [
         (c.port_out.full_name, c.port_in.full_name)
@@ -170,7 +170,7 @@ def export_to_patchichi_json(
                                 pg_list.append(pg_mem.as_new_dict())
                                 one_port_found = True
                                 break
-                        
+
                         if one_port_found:
                             break
 

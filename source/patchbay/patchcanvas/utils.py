@@ -148,23 +148,23 @@ def get_portgroup_name_from_ports_names(ports_names: list[str]) -> str:
                 break
         else:
             portgrp_name += c
-    
+
     # reduce portgrp name until it ends with one of the patterns
     # in portgrp_name_ends
     while portgrp_name:
         if (portgrp_name.endswith((_PG_NAME_ENDS))
                 or portgrp_name in ports_names):
             break
-        
+
         portgrp_name = portgrp_name[:-1]
-    
+
     return portgrp_name
 
 def portgroup_name_splitted(
         *port_names: str) -> tuple[str, tuple[str]]:
     '''return a tuple of two elements,
     the first element is the portgroup name,
-    the second is another tuple containing a suffix for each port. 
+    the second is another tuple containing a suffix for each port.
     '''
     if len(port_names) <= 0:
         return ('', tuple[str]())
@@ -180,20 +180,20 @@ def portgroup_name_splitted(
                 break
         else:
             portgrp_name += c
-    
+
     # reduce portgrp name until it ends with one of the patterns
     # in portgrp_name_ends
     while portgrp_name:
         if (portgrp_name.endswith((_PG_NAME_ENDS))
                 or portgrp_name in port_names):
             break
-        
+
         portgrp_name = portgrp_name[:-1]
-    
+
     port_suffixes = list[str]()
     for port_name in port_names:
         port_suffixes.append(port_name.replace(portgrp_name, '', 1))
-    
+
     return (portgrp_name, tuple(port_suffixes))
 
 def get_icon(icon_type: BoxType, icon_name: str,
@@ -218,9 +218,9 @@ def get_icon(icon_type: BoxType, icon_name: str,
         case BoxType.HARDWARE:
             icon_file = ":/canvas/"
             icon_file += "dark/" if dark else "light/"
-            
+
             if icon_name == "a2j":
-                icon_file += "DIN-5.svg"        
+                icon_file += "DIN-5.svg"
             else:
                 if port_mode is PortMode.INPUT:
                     icon_file += "audio-headphones.svg"
@@ -234,7 +234,7 @@ def get_icon(icon_type: BoxType, icon_name: str,
         case BoxType.MONITOR:
             prefix = ":/canvas/"
             prefix += "dark/" if dark else "light/"
-            
+
             if port_mode is PortMode.INPUT:
                 icon.addFile(prefix + "monitor_capture.svg")
             else:
@@ -273,11 +273,11 @@ def nearest_on_grid(xy: tuple[int, int]) -> tuple[int, int]:
     ret_x = cell_x * (x // cell_x) + margin
     if x - ret_x > cell_x / 2:
         ret_x += cell_x
-    
+
     ret_y = cell_y * (y // cell_y) + margin
     if y - ret_y > cell_y / 2:
         ret_y += cell_y
-    
+
     return (ret_x, ret_y)
 
 def nearest_on_grid_check_others(
@@ -287,65 +287,65 @@ def nearest_on_grid_check_others(
     to prevent unwanted other boxes move.'''
     canvas.ensure_init()
     spacing = canvas.theme.box_spacing
-    check_rect = orig_box.boundingRect().translated(QPointF(*xy))    
+    check_rect = orig_box.boundingRect().translated(QPointF(*xy))
     search_rect = check_rect.adjusted(- spacing, - spacing, spacing, spacing)
 
     boxes = [b for b in canvas.scene.list_boxes_at(search_rect)
              if b is not orig_box]
     x, y = xy
     new_x, new_y = nearest_on_grid(xy)
-    
+
     for box in boxes:
         rect = box.sceneBoundingRect()
 
         if (previous_top_on_grid(y)
                 == previous_top_on_grid(rect.bottom())):
             return (new_x, previous_top_on_grid(y) + options.cell_height)
-        
+
         if (next_bottom_on_grid(check_rect.bottom())
                 == next_bottom_on_grid(rect.top())):
             return (new_x, next_top_on_grid(y) - options.cell_height)
-     
+
     return nearest_on_grid(xy)
 
 def previous_left_on_grid(x: int | float) -> int:
     canvas.ensure_init()
     cell_x = options.cell_width
     margin = canvas.theme.box_spacing / 2
-    
+
     ret = int(cell_x * (x // cell_x) + margin)
     if ret > x:
         ret -= cell_x
-    
+
     return ret
 
 def next_left_on_grid(x: int | float) -> int:
     canvas.ensure_init()
     cell_x = options.cell_width
     margin = canvas.theme.box_spacing / 2
-    
+
     ret = int(cell_x * (x // cell_x) + margin)
     if ret < x:
         ret += cell_x
-    
+
     return ret
 
 def previous_top_on_grid(y: int | float) -> int:
     canvas.ensure_init()
     cell_y = options.cell_height
     margin = canvas.theme.box_spacing / 2
-    
+
     ret = int(cell_y * (y // cell_y) + margin)
     if ret > y:
         ret -= cell_y
-    
+
     return ret
 
 def next_top_on_grid(y: int | float) -> int:
     canvas.ensure_init()
     cell_y = options.cell_height
     margin = canvas.theme.box_spacing / 2
-    
+
     ret = int(cell_y * ((y - 1) // cell_y) + margin)
     if ret < y:
         ret += cell_y
@@ -370,7 +370,7 @@ def next_width_on_grid(width: int | float) -> int:
     ret = cell_x * (1 + (width // cell_x)) - box_spacing
     while ret < width:
         ret += cell_x
-    
+
     return int(ret)
 
 def next_height_on_grid(height: int | float) -> int:
@@ -380,6 +380,5 @@ def next_height_on_grid(height: int | float) -> int:
     ret = cell_y * (1 + (height // cell_y)) - box_spacing
     while ret < height:
         ret += cell_y
-    
+
     return int(ret)
-    

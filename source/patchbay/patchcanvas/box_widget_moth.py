@@ -149,7 +149,7 @@ class BoxWidgetMoth(QGraphicsItem):
         self._title_lines = list[TitleLine]()
         self._header_line_left = None
         self._header_line_right = None
-        
+
         if group.gpos.boxes[port_mode].is_wrapped():
             self._wrapping_state = WrappingState.WRAPPED
         else:
@@ -183,7 +183,7 @@ class BoxWidgetMoth(QGraphicsItem):
             shadow_theme = shadow_theme.client
         elif self.is_monitor():
             shadow_theme = shadow_theme.monitor
-        
+
         self.shadow = None
         # FIXME FX on top of graphic items make them lose high-dpi
         # See https://bugreports.qt.io/browse/QTBUG-65035
@@ -193,7 +193,7 @@ class BoxWidgetMoth(QGraphicsItem):
             self.shadow.set_fake_parent(self)
             self.shadow.set_theme(shadow_theme)
             self.setGraphicsEffect(self.shadow)
-            
+
             if port_mode is PortMode.INPUT:
                 self.shadow.setOffset(4, 2)
             elif port_mode is PortMode.OUTPUT:
@@ -216,7 +216,7 @@ class BoxWidgetMoth(QGraphicsItem):
         self._is_semi_hidden = False
         '''is True when the group name does not match
         with the filter bar text. The box opacity becomes lighter.'''
-        
+
         self._can_handle_gui = group.handle_client_gui
         'used for optional-gui switch (NSM)'
         self._gui_visible = group.gui_visible
@@ -254,21 +254,21 @@ class BoxWidgetMoth(QGraphicsItem):
             _logger.error(
                 'set_port_mode impossible, it fails to find its group')
             return
-        
+
         self._port_mode = port_mode
         self._layout_mode = group.gpos.boxes[port_mode].layout_mode
 
     def get_current_port_mode(self):
         return self._current_port_mode
-    
+
     def set_layout_mode(self, layout_mode: BoxLayoutMode):
         self._layout_mode = layout_mode
-    
+
     def get_current_layout_mode(self) -> BoxLayoutMode:
         if self._layout is None:
             return BoxLayoutMode.AUTO
         return self._layout.layout_mode
-    
+
     def redraw_inline_display(self):
         if self._plugin_inline is InlineDisplay.CACHED:
             self._plugin_inline = InlineDisplay.ENABLED
@@ -353,7 +353,7 @@ class BoxWidgetMoth(QGraphicsItem):
     def check_item_pos(self):
         if canvas.size_rect.isNull():
             return
-        
+
         pos = self.scenePos()
         if not (canvas.size_rect.contains(pos) and
                 canvas.size_rect.contains(
@@ -378,10 +378,10 @@ class BoxWidgetMoth(QGraphicsItem):
         self.top_icon = None
         canvas.scene.removeItem(item)
         del item
-        
+
     def animate_wrapping(self, ratio: float):
         # we expose wrapping ratio only for prettier animation
-        # i.e. self._wrapping_ratio = ratio would also works fine        
+        # i.e. self._wrapping_ratio = ratio would also works fine
         if self._wrapping_state is WrappingState.WRAPPING:
             self._wrapping_ratio = ratio ** 0.25
         elif self._wrapping_state is WrappingState.UNWRAPPING:
@@ -413,9 +413,9 @@ class BoxWidgetMoth(QGraphicsItem):
             if self.hidder_widget is None:
                 self.hidder_widget = BoxHidder(self)
             self.hidder_widget.set_hide_ratio(ratio)
-        
+
             self.setZValue(Zv.HIDDING_BOX.value)
-        
+
     def animate_restoring(self, ratio: float):
         'ratio goes from 0.0 (box hidden) to 1.0 (box shown)'
         if ratio >= 1.0:
@@ -425,7 +425,7 @@ class BoxWidgetMoth(QGraphicsItem):
 
             self.setZValue(
                 Zv.SEL_BOX.value if self.isSelected() else Zv.BOX.value)
-            
+
         else:
             if self.hidder_widget is None:
                 self.hidder_widget = BoxHidder(self)
@@ -481,10 +481,10 @@ class BoxWidgetMoth(QGraphicsItem):
 
         # TODO check type BoxWidget or BoxWidgetMoth
         canvas.scene.add_box_to_animation_wrapping(self, yesno)
-        
+
         if not prevent_overlap:
             return
-        
+
         if self._has_side_title() and self._current_port_mode is PortMode.OUTPUT:
             # keep ports at same right pos in this case.
             x, y = self.top_left()
@@ -559,7 +559,7 @@ class BoxWidgetMoth(QGraphicsItem):
             _logger.error(f"Can not wrap or unwrap {self} now, "
                           "_layout is not set yet")
             return False
-            
+
         if self._wrapping_state is WrappingState.WRAPPED:
             # unwrap the box if scene_pos is in one of the triangles zones
             triangle_rect_out = QRectF(0.0, self._height - 24.0, 24.0, 24.0)
@@ -582,34 +582,34 @@ class BoxWidgetMoth(QGraphicsItem):
                 canvas.cb.group_wrap(
                     self._group_id, self._port_mode, False)
                 return True
-            
+
         elif self._wrap_triangle_pos is not UnwrapButton.NONE:
             # wrap the box if scene_pos is on the triangle zone
             trirect = QRectF(0, self._height - 16, 16, 16)
-            
+
             if self._wrap_triangle_pos is UnwrapButton.CENTER:
                 center_width = (self._width + self._layout._pms.ins_width
                                 - self._layout._pms.outs_width) / 2.0
-                
+
                 trirect = QRectF(center_width - 8.0, self._height - 16.0,
                                  16.0, 16.0)
             elif self._wrap_triangle_pos is UnwrapButton.RIGHT:
                 trirect = QRectF(self._width - 16.0, self._height -16.0,
                                  16.0, 16.0)
-                
+
             trirect.translate(self.scenePos())
             if trirect.contains(scene_pos):
                 canvas.cb.group_wrap(
                     self._group_id, self._port_mode, True)
                 return True
-        
+
         return False
 
     def type(self) -> CanvasItemType:
         return CanvasItemType.BOX
 
     # --- protected Qt Functions redefined here ---
-    
+
     def itemChange(self, change, value):
         if change == QGraphicsItem.GraphicsItemChange.ItemSelectedHasChanged:
             is_selected = bool(value)
@@ -678,11 +678,11 @@ class BoxWidgetMoth(QGraphicsItem):
         if canvas.menu_shown and canvas.menu_click_pos == QCursor.pos():
             # prevent box move if user just quit a context menu with click outside
             # because it moves the box at the very strange position
-            # if the cursor didn't move between the click for menu quit 
+            # if the cursor didn't move between the click for menu quit
             # and the next one (this one).
             # strange Qt Bug.
             self.setFlag(QGraphicsItem.GraphicsItemFlag.ItemIsMovable, False)
-        
+
         elif event.button() == Qt.MouseButton.RightButton:
             event.accept()
             canvas.scene.clearSelection()
@@ -738,22 +738,22 @@ class BoxWidgetMoth(QGraphicsItem):
             canvas.scene.unset_cursor()
             self.repaint_lines(forced=True)
             canvas.scene.reset_scroll_bars()
-            
+
             selected_boxes = canvas.scene.get_selected_boxes()
-            
-            # callback the state of positions 
+
+            # callback the state of positions
             arg_list = list[tuple[int, PortMode, int, int]]()
             if len(selected_boxes) == 1:
                 xy = nearest_on_grid_check_others(self.top_left(), self)
                 arg_list.append(
                     (self._group_id, self._port_mode, *xy))
-            else: 
+            else:
                 # many selected boxes, do not auto-adapt the position
                 # to other existing boxes (no check_others)
                 for box in selected_boxes:
                     xy = nearest_on_grid(box.top_left())
                     arg_list.append((box._group_id, box._port_mode, *xy))
-            
+
             canvas.cb.boxes_moved(*arg_list)
 
             canvas.set_aliasing_reason(AliasingReason.USER_MOVE, False)
@@ -765,11 +765,11 @@ class BoxWidgetMoth(QGraphicsItem):
         if (QApplication.keyboardModifiers() & Qt.KeyboardModifier.ShiftModifier
                 and not self._cursor_moving):
             return
-        
+
         self._cursor_moving = False
-        
+
         QGraphicsItem.mouseReleaseEvent(self, event)
-    
+
     def fix_pos(self, check_others=False):
         xy = self.top_left()
 
@@ -777,7 +777,7 @@ class BoxWidgetMoth(QGraphicsItem):
             new_xy = nearest_on_grid_check_others(xy, self)
         else:
             new_xy = nearest_on_grid(xy)
-        
+
         if xy == new_xy:
             self.set_top_left(xy)
             self.repaint_lines()
@@ -819,7 +819,7 @@ class BoxWidgetMoth(QGraphicsItem):
         cache_mode = self.cacheMode()
         if yesno and cache_mode == QGraphicsItem.CacheMode.DeviceCoordinateCache:
             return
-        
+
         if not yesno and cache_mode == QGraphicsItem.CacheMode.NoCache:
             return
 
@@ -828,12 +828,12 @@ class BoxWidgetMoth(QGraphicsItem):
             cache_mode = QGraphicsItem.CacheMode.NoCache
         else:
             cache_mode = QGraphicsItem.CacheMode.DeviceCoordinateCache
-        
+
         self.setCacheMode(cache_mode)
         for port in self._port_list:
             if port.widget is not None:
                 port.widget.setCacheMode(cache_mode)
-        
+
         for portgroup in self._portgrp_list:
             if (self._current_port_mode & portgroup.port_mode
                     and portgroup.widget is not None):
@@ -847,10 +847,10 @@ class BoxWidgetMoth(QGraphicsItem):
         else:
             width = self._wrapped_width
             height = self._wrapped_height
-        
+
         if self.is_hardware:
             hws = float(canvas.theme.hardware_rack_width)
-            
+
             return QRectF(- hws, - hws,
                           width + 2.0 * hws,
                           height + 2.0 * hws)
@@ -861,7 +861,7 @@ class BoxWidgetMoth(QGraphicsItem):
         if (self._current_port_mode is PortMode.NULL
                 or not self.isVisible()):
             return QRectF()
-        
+
         if futur:
             move_box = canvas.scene.move_boxes.get(self)
             if move_box is not None:
@@ -876,12 +876,12 @@ class BoxWidgetMoth(QGraphicsItem):
                         QMarginsF(50.0, 20.0, 20.0, 20.0))
                 return move_box.final_rect.marginsAdded(
                     QMarginsF(50.0, 20.0, 50.0, 20.0))
-        
+
         # the scene size needs a little margin at top and bottom
         # of the box.
         # It needs a bigger margin on sides with ports,
         # for the possible connections.
-        
+
         if self._current_port_mode is PortMode.OUTPUT:
             return self.sceneBoundingRect().marginsAdded(
                 QMarginsF(20.0, 20.0, 50.0, 20.0))
@@ -894,7 +894,7 @@ class BoxWidgetMoth(QGraphicsItem):
     def boundingRect(self):
         if self.is_hardware:
             hws = canvas.theme.hardware_rack_width
-            
+
             return QRectF(- hws, - hws,
                           self._width + 2 * hws,
                           self._height + 2 * hws)
@@ -914,7 +914,7 @@ class BoxWidgetMoth(QGraphicsItem):
         theme = canvas.theme.box
         wtheme = canvas.theme.box_wrapper
         hltheme = canvas.theme.box_header_line
-        
+
         if self.is_hardware:
             theme = theme.hardware
             wtheme = wtheme.hardware
@@ -966,12 +966,12 @@ class BoxWidgetMoth(QGraphicsItem):
             painter.setBrush(box_gradient)
         else:
             painter.setBrush(color_main)
-        
+
         if self.isSelected():
             painter.drawPath(self._painter_path_sel)
         else:
             painter.drawPath(self._painter_path)
-        
+
         # draw hardware box decoration (flyrack like)
         self._paint_hardware_rack(painter)
 
@@ -994,16 +994,16 @@ class BoxWidgetMoth(QGraphicsItem):
                     header_rect = QRectF(
                         3.0 + pen_width, 3.0 + pen_width,
                         self._header_width - 6.0, self._header_height - 6.0)
-            
+
             gui_theme = canvas.theme.gui_button
             if self._gui_visible:
                 gui_theme = gui_theme.gui_visible
             else:
                 gui_theme = gui_theme.gui_hidden
-            
+
             painter.setBrush(gui_theme.background_color)
             painter.setPen(gui_theme.fill_pen)
-            
+
             radius = gui_theme.border_radius
             if radius == 0.0:
                 painter.drawRect(header_rect)
@@ -1017,11 +1017,11 @@ class BoxWidgetMoth(QGraphicsItem):
             else:
                 bor_gradient = QLinearGradient(
                     self._width, 0, self._height, self._width - self._height)
-            
+
             mon_theme = canvas.theme.monitor_decoration
             if self.isSelected():
                 mon_theme = mon_theme.selected
-            
+
             color_main = mon_theme.background_color
             color_alter = mon_theme.background2_color
 
@@ -1061,7 +1061,7 @@ class BoxWidgetMoth(QGraphicsItem):
                 xside = self._width - xside
                 xband = self._width - xband
                 xtop = self._width - xtop
-                xbot = self._width - xbot                
+                xbot = self._width - xbot
 
             mon_poly = QPolygonF()
             mon_poly += QPointF(xside, pen_width)
@@ -1070,7 +1070,7 @@ class BoxWidgetMoth(QGraphicsItem):
             mon_poly += QPointF(xband, self._height - tms_bot - pen_width)
             mon_poly += QPointF(xbot, self._height - pen_width)
             mon_poly += QPointF(xside, self._height - pen_width)
-            
+
             painter.drawPolygon(mon_poly)
 
         # may draw horizontal lines around title (header lines)
@@ -1085,14 +1085,14 @@ class BoxWidgetMoth(QGraphicsItem):
         normal_color = theme.text_color
         opac_color = QColor(normal_color)
         opac_color.setAlpha(int(normal_color.alpha() / 2))
-        
+
         text_pen = QPen(normal_color)
         opac_text_pen = QPen(opac_color)
 
         # draw title lines
         for title_line in self._title_lines:
             painter.setFont(title_line.get_font())
-            
+
             if title_line.is_little:
                 painter.setPen(opac_text_pen)
             else:
@@ -1160,7 +1160,7 @@ class BoxWidgetMoth(QGraphicsItem):
                             triangle += QPointF(xpos, ypos)
                             triangle += QPointF(xpos + 2 * side, ypos)
                             triangle += QPointF(xpos + side, ypos + side)
-                        
+
                         painter.drawPolygon(triangle)
 
             case UnwrapButton.LEFT:
@@ -1173,24 +1173,24 @@ class BoxWidgetMoth(QGraphicsItem):
                 triangle += QPointF(xpos + side, ypos -side)
 
                 painter.drawPolygon(triangle)
-            
+
             case UnwrapButton.RIGHT:
                 side = 6
                 xpos = self._width - pen_width - 2 * side - 2.0
-                
+
                 ypos = self._height - pen_width - 2.0
                 triangle = QPolygonF()
                 triangle += QPointF(xpos, ypos)
                 triangle += QPointF(xpos + 2 * side, ypos)
                 triangle += QPointF(xpos + side, ypos - side)
                 painter.drawPolygon(triangle)
-            
+
             case UnwrapButton.CENTER:
                 side = 7
-                xpos = (self._width 
+                xpos = (self._width
                         + self._layout._pms.ins_width
                         - self._layout._pms.outs_width) / 2 - side
-                
+
                 ypos = self._height - tr_pen_width / 2.0
                 triangle = QPolygonF()
                 triangle += QPointF(xpos, ypos)
@@ -1203,20 +1203,20 @@ class BoxWidgetMoth(QGraphicsItem):
     def _paint_hardware_rack(self, painter: QPainter):
         if not self.is_hardware:
             return
-        
+
         if self._layout is None:
             return
-        
+
         d = float(canvas.theme.hardware_rack_width)
         sd = d * 0.5
-        
+
         theme = canvas.theme.hardware_rack
         if self.isSelected():
             theme = theme.selected
-        
+
         background1 = theme.background_color
         background2 = theme.background2_color
-        
+
         if background2 is not None:
             hw_gradient = QLinearGradient(
                 -d, -d, self._width + d, self._height + d)
@@ -1227,16 +1227,16 @@ class BoxWidgetMoth(QGraphicsItem):
             painter.setBrush(hw_gradient)
         else:
             painter.setBrush(background1)
-        
+
         pen = theme.fill_pen
         painter.setPen(pen)
         lh = pen.widthF() / 2.0
-        
+
         ports_top_in = self._layout.ports_top_in
         ports_top_out = self._layout.ports_top_out
         ports_bottom_in = self._layout.ports_bottom_in
         ports_bottom_out = self._layout.ports_bottom_out
-        
+
         if self._current_port_mode is not PortMode.BOTH:
             if self._current_port_mode is PortMode.INPUT:
                 points = [
@@ -1259,7 +1259,7 @@ class BoxWidgetMoth(QGraphicsItem):
                     (self._width + lh, self._height + lh),
                     (self._width + lh, - lh)
                 ]
-                
+
             else:
                 points = [
                     (self._width + lh, - lh),
@@ -1281,8 +1281,8 @@ class BoxWidgetMoth(QGraphicsItem):
                     (-lh, self._height + lh),
                     (-lh, -lh)
                 ]
-            
-            hardware_poly = QPolygonF()   
+
+            hardware_poly = QPolygonF()
             for xy in points:
                 hardware_poly += QPointF(*xy)
 
@@ -1317,12 +1317,12 @@ class BoxWidgetMoth(QGraphicsItem):
                 (self._width + lh, ports_bottom_out + lh),
                 (self._width + lh, self._height + lh)
             ]
-            
+
             hw_poly_top = QPolygonF()
             for xy in top_points:
                 hw_poly_top += QPointF(*xy)
             painter.drawPolygon(hw_poly_top)
-            
+
             hw_poly_bottom = QPolygonF()
             for xy in bottom_points:
                 hw_poly_bottom += QPointF(*xy)
@@ -1378,17 +1378,17 @@ class BoxWidgetMoth(QGraphicsItem):
 
         painter.drawImage(
             QRectF(srcx, srcy, swidth, sheight), self._inline_image)
-    
+
     def get_theme(self, for_wrapper=False) -> UnselectedStyleAttributer:
         theme = canvas.theme.box
         if for_wrapper:
             theme = canvas.theme.box_wrapper
-        
+
         if self.is_hardware:
             theme = theme.hardware
         elif self._box_type == BoxType.CLIENT:
             theme = theme.client
         elif self.is_monitor():
             theme = theme.monitor
-        
+
         return theme

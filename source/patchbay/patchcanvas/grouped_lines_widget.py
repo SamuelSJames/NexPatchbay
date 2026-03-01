@@ -52,13 +52,13 @@ if TYPE_CHECKING:
 class GroupOutInsDict(dict):
     def __init__(self):
         dict.__init__(self)
-    
+
     def add_group_ids(self, group_out_id: int, group_in_id: int):
         gp_set: Optional[set] = self.get(group_out_id)
         if gp_set is None:
             self[group_out_id] = gp_set = set()
         gp_set.add(group_in_id)
-        
+
     def send_changes(self):
         for group_out_id, group_in_ids in self.items():
             for group_in_id in group_in_ids:
@@ -78,7 +78,7 @@ class GroupedLinesWidget(QGraphicsPathItem):
                  port_type: PortType,
                  theme_state: ConnectionThemeState):
         ''' Class for group of connections lines widget.
-        Cointains in one widget all connections of same type 
+        Cointains in one widget all connections of same type
         (audio, midi, ...) from the same group out to the same group in,
         with the same theme state (Normal, selected, disconnecting).'''
         canvas.ensure_init()
@@ -96,11 +96,11 @@ class GroupedLinesWidget(QGraphicsPathItem):
         self._semi_hidden = False
         '''is True when the two connected ports are on semi-hidden boxes.
         The lines opacity becomes lighter.'''
-        
+
         self._th_attribs: Optional[_ThemeAttributes] = None
         self._theme_state = theme_state
         self.update_theme()
-        
+
         if theme_state is ConnectionThemeState.SELECTED:
             self.setZValue(Zv.SEL_LINE.value)
         else:
@@ -114,23 +114,23 @@ class GroupedLinesWidget(QGraphicsPathItem):
         group_in = canvas.get_group(group_in_id)
         if group_out is None or group_in is None:
             return
-        
+
         for box_out in group_out.widgets:
             if PortMode.OUTPUT in box_out.get_port_mode():
                 break
         else:
             return
-        
+
         for box_in in group_in.widgets:
             if PortMode.INPUT in box_in.get_port_mode():
                 break
         else:
             return
-        
+
         move_box_out = canvas.scene.move_boxes.get(box_out)
         if move_box_out is not None:
             self._box_hidding_out = move_box_out.hidding_state
-            
+
         move_box_in = canvas.scene.move_boxes.get(box_in)
         if move_box_in is not None:
             self._box_hidding_in = move_box_in.hidding_state
@@ -153,7 +153,7 @@ class GroupedLinesWidget(QGraphicsPathItem):
     @staticmethod
     def prepare_conn_changes(group_out_id: int, group_in_id: int):
         _groups_to_check.add((group_out_id, group_in_id))
-        
+
     @staticmethod
     def change_all_prepared_conns():
         for gp_outin in _groups_to_check:
@@ -166,10 +166,10 @@ class GroupedLinesWidget(QGraphicsPathItem):
         if gp_dict is None:
             gp_dict = {}
             _all_lines_widgets[(group_out_id, group_in_id)] = gp_dict
-        
+
         to_update = dict[PortType, set[ConnectionThemeState]]()
         new_widgets = set[GroupedLinesWidget]()
-        
+
         for conn in canvas.list_connections(
                 group_out_id=group_out_id, group_in_id=group_in_id):
             theme_state = conn.theme_state()
@@ -204,9 +204,9 @@ class GroupedLinesWidget(QGraphicsPathItem):
                         canvas.scene.removeItem(widget)
                     pt_dict.clear()
                 continue
-            
+
             attrs_to_del = set[ConnectionThemeState]()
-            
+
             for theme_state, widget in pt_dict.items():
                 if theme_state not in to_update[port_type]:
                     canvas.scene.removeItem(widget)
@@ -214,7 +214,7 @@ class GroupedLinesWidget(QGraphicsPathItem):
                 elif widget not in new_widgets:
                     widget.update_theme()
                     widget.update_lines_pos()
-                    
+
             for attr_to_del in attrs_to_del:
                 pt_dict.__delitem__(attr_to_del)
 
@@ -226,7 +226,7 @@ class GroupedLinesWidget(QGraphicsPathItem):
                 if connection.port_out_id is port.port_id:
                     _groups_to_check.add(
                         (port.group_id, connection.group_in_id))
-        
+
         elif port.port_mode is PortMode.INPUT:
             for connection in canvas.list_connections(
                     group_in_id=port.group_id):
@@ -246,7 +246,7 @@ class GroupedLinesWidget(QGraphicsPathItem):
             gp_keys = [g for g in _all_lines_widgets if group_id in g]
         else:
             return
-        
+
         for gp_key in gp_keys:
             for pt_dict in _all_lines_widgets[gp_key].values():
                 for widget in pt_dict.values():
@@ -257,7 +257,7 @@ class GroupedLinesWidget(QGraphicsPathItem):
         for gp_dict, pt_dict in _all_lines_widgets.items():
             gp_out_id, gp_in_id = gp_dict
             semi_hidden = (gp_out_id in group_ids and gp_in_id in group_ids)
-            
+
             for tstate_dict in pt_dict.values():
                 for widget in tstate_dict.values():
                     if widget._semi_hidden is not semi_hidden:
@@ -305,7 +305,7 @@ class GroupedLinesWidget(QGraphicsPathItem):
 
         self._semi_hidden = yesno
         self.update_line_gradient()
-        
+
         if yesno:
             self.setZValue(Zv.OPAC_LINE.value)
         else:
@@ -325,23 +325,23 @@ class GroupedLinesWidget(QGraphicsPathItem):
                 group_in_id=self._group_in_id):
             if conn.port_type is not self._port_type:
                 continue
-            
+
             if conn.theme_state() is not self._theme_state:
                 continue
-            
+
             port_out = canvas.get_port(self._group_out_id, conn.port_out_id)
             port_in = canvas.get_port(self._group_in_id, conn.port_in_id)
             if port_out is None or port_in is None:
                 continue
-            
+
             port_out_con_pos = port_out.widget.connect_pos()
             port_in_con_pos = port_in.widget.connect_pos()
-            
+
             item1_x = port_out_con_pos.x()
             item1_y = port_out_con_pos.y()
             item2_x = port_in_con_pos.x()
             item2_y = port_in_con_pos.y()
-            
+
             if not groups_x_done:
                 self._group_out_x = item1_x
                 self._group_in_x = item2_x
@@ -355,9 +355,9 @@ class GroupedLinesWidget(QGraphicsPathItem):
             group_out_max_y = max(group_out_max_y, item1_y)
             group_in_min_y = min(group_in_min_y, item2_y)
             group_in_max_y = max(group_in_max_y, item2_y)
-            
+
             existing_path = False
-            
+
             for key, value in paths.items():
                 y1, y2 = key
                 if item1_y - y1 == item2_y - y2:
@@ -365,7 +365,7 @@ class GroupedLinesWidget(QGraphicsPathItem):
                         0.0, item1_y - y1)
                     existing_path = True
                     break
-            
+
             if existing_path:
                 continue
 
@@ -382,7 +382,7 @@ class GroupedLinesWidget(QGraphicsPathItem):
             path.cubicTo(item1_x + mid_x, item1_y,
                          item2_x - mid_x, item2_y,
                          item2_x, item2_y)
-            
+
             paths[(item1_y, item2_y)] = path
 
         main_path = QPainterPath()
@@ -393,9 +393,9 @@ class GroupedLinesWidget(QGraphicsPathItem):
 
         self._group_out_mid_y = (group_out_max_y + group_out_min_y) * 0.5
         self._group_in_mid_y = (group_in_max_y + group_in_min_y) * 0.5
-        
+
         if not fast_move:
-            # line gradient is not updated at mouse move event or when box 
+            # line gradient is not updated at mouse move event or when box
             # is moved by animation. It makes win few time and so avoid some
             # graphic jerks.
             self.update_line_gradient()
@@ -434,16 +434,16 @@ class GroupedLinesWidget(QGraphicsPathItem):
         if (self._box_hidding_out is not BoxHidding.NONE
                 or self._box_hidding_in is not BoxHidding.NONE):
             return
-        
+
         pos_top = self.boundingRect().top()
         pos_bot = self.boundingRect().bottom()
 
         tha = self._th_attribs
         if tha is None:
             return
-        
+
         has_gradient = bool(tha.color_main != tha.color_alter)
-        
+
         if has_gradient:
             if tha.color_alter is None:
                 return
@@ -453,7 +453,7 @@ class GroupedLinesWidget(QGraphicsPathItem):
             if self._semi_hidden:
                 shd = options.semi_hide_opacity
                 bgcolor = canvas.theme.scene_background_color
-                
+
                 color_main = QColor(
                     int(tha.color_main.red() * shd
                         + bgcolor.red() * (1.0 - shd) + 0.5),
@@ -462,7 +462,7 @@ class GroupedLinesWidget(QGraphicsPathItem):
                     int(tha.color_main.blue() * shd
                         + bgcolor.blue() * (1.0 - shd) + 0.5),
                     tha.color_main.alpha())
-                
+
                 color_alter = QColor(
                     int(tha.color_alter.red() * shd
                         + bgcolor.red() * (1.0 - shd) + 0.5),
@@ -471,14 +471,14 @@ class GroupedLinesWidget(QGraphicsPathItem):
                     int(tha.color_alter.blue() * shd
                         + bgcolor.blue() * (1.0 - shd) + 0.5),
                     tha.color_alter.alpha())
-            
+
             else:
                 color_main, color_alter = tha.color_main, tha.color_alter
 
             port_gradient.setColorAt(0.0, color_main)
             port_gradient.setColorAt(0.5, color_alter)
             port_gradient.setColorAt(1.0, color_main)
-            
+
             self.setPen(
                 QPen(port_gradient, tha.base_width,
                      Qt.PenStyle.SolidLine, Qt.PenCapStyle.FlatCap))
@@ -497,15 +497,15 @@ class GroupedLinesWidget(QGraphicsPathItem):
                     tha.color_main.alpha())
             else:
                 color_main = tha.color_main
-        
+
             self.setPen(
                 QPen(QBrush(color_main), tha.base_width,
                      Qt.PenStyle.SolidLine, Qt.PenCapStyle.FlatCap))
-            
+
     def animate_hidding(self, ratio: float):
         '''animate hidding or restoring of connections.
         'ratio' goes from 0.0 (animation start) to 1.0 (animation end).'''
-        
+
         if (self._box_hidding_out is BoxHidding.NONE
                 and self._box_hidding_in is BoxHidding.NONE):
             self.update_line_gradient()
@@ -520,7 +520,7 @@ class GroupedLinesWidget(QGraphicsPathItem):
                 # the lines widget must be invisible at end of animation.
                 # Lines widget will be removed very soon.
                 return
-            
+
             self._box_hidding_out = BoxHidding.NONE
             self._box_hidding_in = BoxHidding.NONE
             # the lines have now to be drawn normally
@@ -536,19 +536,19 @@ class GroupedLinesWidget(QGraphicsPathItem):
                                    self._group_in_x, self._group_in_mid_y)
         transparent = QColor(0, 0, 0, 0)
         color_main = self._th_attribs.color_main
-        
+
         # OUT       | IN        | TRANSPARENT STARTS ON | REVERSE
-        # ----------|-----------|-----------------------|--------            
+        # ----------|-----------|-----------------------|--------
         # NONE      | NONE      | not here              |
         # NONE      | HIDDING   | right                 | X
         # NONE      | RESTORING | right                 |
-        # HIDDING   | NONE      | left                  | 
+        # HIDDING   | NONE      | left                  |
         # HIDDING   | HIDDING   | middle                |
         # HIDDING   | RESTORING | left (special)        |
         # RESTORING | NONE      | left                  | X
         # RESTORING | HIDDING   | right (special)       | X
         # RESTORING | RESTORING | middle                | X
-        
+
         if ((self._box_hidding_out is BoxHidding.NONE
                     and self._box_hidding_in is BoxHidding.HIDDING)
                 or self._box_hidding_out is BoxHidding.RESTORING):
@@ -562,7 +562,7 @@ class GroupedLinesWidget(QGraphicsPathItem):
             gradient.setColorAt(0.5 + ratio * 0.5 - epsy, transparent)
             gradient.setColorAt(0.5 + ratio * 0.5 + epsy, color_main)
             gradient.setColorAt(1.0, color_main)
-        
+
         elif (self._box_hidding_out is not BoxHidding.NONE
                 and self._box_hidding_in is not BoxHidding.NONE):
             # transparent starts on the left
@@ -581,14 +581,14 @@ class GroupedLinesWidget(QGraphicsPathItem):
                 gradient.setColorAt(((ratio - 0.5) * 2) - epsy, transparent)
                 gradient.setColorAt(((ratio - 0.5) * 2) + epsy, color_main)
                 gradient.setColorAt(1.0, color_main)
-        
+
         elif self._box_hidding_out is BoxHidding.NONE:
             # transparent starts on the right
             gradient.setColorAt(0.0, color_main)
             gradient.setColorAt(ratio - epsy, color_main)
             gradient.setColorAt(ratio + epsy, transparent)
             gradient.setColorAt(1.0, transparent)
-            
+
         else:
             # transparent starts on the left
             gradient.setColorAt(0.0, transparent)
@@ -598,22 +598,22 @@ class GroupedLinesWidget(QGraphicsPathItem):
 
         self.setPen(QPen(gradient, self._th_attribs.base_width,
                          Qt.PenStyle.SolidLine, Qt.PenCapStyle.FlatCap))
-    
+
     def set_mode_hidding(self, port_mode: PortMode, box_hidding: BoxHidding):
         if port_mode & PortMode.OUTPUT:
             self._box_hidding_out = box_hidding
         if port_mode & PortMode.INPUT:
             self._box_hidding_in = box_hidding
-            
+
     def finish_animation(self):
         '''Set attributes to ensure the next gradient will be correct
         after animation.'''
-        
+
         # keep BoxHidding.HIDDING if it is the case
-        # because, in this case, the connection will be removed, 
+        # because, in this case, the connection will be removed,
         # we don't want to see it anymore.
         if self._box_hidding_out is not BoxHidding.HIDDING:
             self._box_hidding_out = BoxHidding.NONE
-        
+
         if self._box_hidding_in is not BoxHidding.HIDDING:
             self._box_hidding_in = BoxHidding.NONE

@@ -24,7 +24,7 @@ def _to_qcolor(color: str) -> Optional[QColor]:
 
     intensity_ratio = 1.0
     opacity_ratio = 1.0
-    
+
     if color.startswith('-'):
         color = color.partition('-')[2].strip()
         intensity_ratio = - 1.0
@@ -32,30 +32,30 @@ def _to_qcolor(color: str) -> Optional[QColor]:
     if '*' in color:
         words = color.split('*')
         next_for_opac = False
-        
+
         for i, word in enumerate(words):
             if i == 0:
                 color = word.strip()
                 continue
-            
+
             if not word:
                 next_for_opac = True
                 continue
-            
+
             if next_for_opac:
                 try:
                     opacity_ratio *= float(word.strip())
                 except:
                     pass
-            
+
                 next_for_opac = False
                 continue
-            
+
             try:
                 intensity_ratio *= float(word.strip())
             except:
                 pass
-    
+
     if color.startswith('rgb(') and color.endswith(')'):
         try:
             channels = [int(c.strip()) for c in
@@ -64,7 +64,7 @@ def _to_qcolor(color: str) -> Optional[QColor]:
             qcolor = QColor(*channels)
         except:
             return None
-    
+
     elif color.startswith('rgba(') and color.endswith(')'):
         try:
             values = [c.strip() for c in
@@ -74,7 +74,7 @@ def _to_qcolor(color: str) -> Optional[QColor]:
                             int(float(values[3]) * 255)) # type:ignore
         except:
             return None
-    
+
     else:
         qcolor = QColor(color)
 
@@ -83,15 +83,15 @@ def _to_qcolor(color: str) -> Optional[QColor]:
 
     if intensity_ratio == 1.0 and opacity_ratio == 1.0:
         return qcolor
-    
+
     if intensity_ratio < 0.0:
         qcolor = QColor(
             255 - qcolor.red(), 255 - qcolor.green(),
             255 - qcolor.blue(), qcolor.alpha())
-    
+
     if opacity_ratio != 1.0:
         qcolor.setAlphaF(opacity_ratio * qcolor.alphaF())
-    
+
     return qcolor.lighter(int(100 * intensity_ratio))
 
 def rail_float(value, mini: float, maxi: float) -> float:
@@ -137,7 +137,7 @@ class StyleAttributer:
         self._font = None
         self._font_metrics_cache: Optional[dict[str, float]] = None
         self._titles_templates_cache: Optional[TitleCache] = None
-        
+
         if TYPE_CHECKING:
             assert isinstance(self._parent, StyleAttributer)
 
@@ -148,13 +148,13 @@ class StyleAttributer:
                 self._border_color = _to_qcolor(value)
                 if self._border_color is None:
                     err = True
-                    
+
             case 'border-width':
                 if isinstance(value, (int, float)):
                     self._border_width = rail_float(value, 0, 20)
                 else:
                     err = True
-                    
+
             case 'border-style':
                 if isinstance(value, str):
                     value = value.lower()
@@ -184,7 +184,7 @@ class StyleAttributer:
                 self._background_color = _to_qcolor(value)
                 if self._background_color is None:
                     err = True
-                    
+
             case 'background2':
                 self._background2_color = _to_qcolor(value)
                 if self._background2_color is None:
@@ -200,12 +200,12 @@ class StyleAttributer:
                         self._background_image = None
                 else:
                     self._background_image = None
-            
+
             case 'text-color':
                 self._text_color = _to_qcolor(value)
                 if self._text_color is None:
                     err = True
-                    
+
             case 'font-name':
                 if isinstance(value, str):
                     self._font_name = value
@@ -218,16 +218,16 @@ class StyleAttributer:
                             QFontDatabase.addApplicationFont(
                                 str(embedded_path))
                             break
-                    
+
                 else:
                     err = True
-                    
+
             case 'font-size':
                 if isinstance(value, (int, float)):
                     self._font_size = rail_int(value, 1, 200)
                 else:
                     err = True
-                    
+
             case 'font-width':
                 if isinstance(value, (int, float)):
                     self._font_width = rail_int(value, 0, 99)
@@ -241,25 +241,25 @@ class StyleAttributer:
                         err = True
                 else:
                     err = True
-            
+
             case 'port-offset':
                 if isinstance(value, (int, float)):
                     self._port_offset = rail_float(value, -20, 20)
                 else:
                     err = True
-            
+
             case 'port-in-offset':
                 if isinstance(value, (int, float)):
                     self._port_in_offset = rail_float(value, -20, 20)
                 else:
                     err = True
-                    
+
             case 'port-out-offset':
                 if isinstance(value, (int, float)):
                     self._port_out_offset = rail_float(value, -20, 20)
                 else:
                     err = True
-            
+
             case 'port-in-offset-mode':
                 if isinstance(value, str):
                     self._port_in_offset_mode = value
@@ -271,13 +271,13 @@ class StyleAttributer:
                     self._port_out_offset_mode = value
                 else:
                     err = True
-            
+
             case 'port-spacing':
                 if isinstance(value, (int, float)):
                     self._port_spacing = rail_float(value, 0, 100)
                 else:
                     err = True
-            
+
             case 'port-type-spacing':
                 if isinstance(value, (int, float)):
                     self._port_type_spacing = rail_float(value, 0, 100)
@@ -301,7 +301,7 @@ class StyleAttributer:
                     self._grid_min_width = rail_float(value, 1, 100000)
                 else:
                     err = True
-                    
+
             case 'grid-min-height':
                 if isinstance(value, (int, float)):
                     self._grid_min_height = rail_float(value, 1, 100000)
@@ -318,16 +318,16 @@ class StyleAttributer:
     def set_style_dict(self, context: str, style_dict: dict):
         if context:
             begin, point, end = context.partition('.')
-            
+
             if begin not in self.subs:
                 _logger.error(f"{self._path}: invalid ignored key: {begin}")
                 return
             self.__getattribute__(begin).set_style_dict(end, style_dict)
             return
-        
+
         for key, value in style_dict.items():
             self.set_attribute(key, value)
-    
+
     def get_value_of(self, attribute: str, orig_path='', needed_attribute=''):
         '''return the value of given attribute for this theme section.
         if this value is not present in this theme section,
@@ -337,14 +337,14 @@ class StyleAttributer:
         if attribute not in self.__dir__():
             _logger.error(f"get_value_of, invalide attribute: {attribute}")
             return None
-        
+
         if not orig_path:
             orig_path = self._path
 
         for path_end in ('selected',):
             if TYPE_CHECKING:
                 assert isinstance(self, UnselectedStyleAttributer)
-            
+
             if (orig_path.endswith('.' + path_end)
                     and path_end in self.subs
                     and self._path + '.' + path_end != orig_path):
@@ -355,7 +355,7 @@ class StyleAttributer:
             if (needed_attribute
                     and self.__getattribute__(needed_attribute) is not None):
                 return None
-                
+
             if self._parent is None:
                 _logger.error(
                     f"get value of: {self._path} None value and no parent")
@@ -365,7 +365,7 @@ class StyleAttributer:
                 attribute, orig_path, needed_attribute)
 
         return self.__getattribute__(attribute)
-    
+
     @property
     def fill_pen(self) -> QPen:
         if self._fill_pen is None:
@@ -376,22 +376,22 @@ class StyleAttributer:
                     QBrush(self.get_value_of('_border_color')),
                     self.get_value_of('_border_width'),
                     self.get_value_of('_border_style'))
-        
+
         return self._fill_pen
-    
+
     @property
     def border_radius(self) -> float:
         return self.get_value_of('_border_radius') # type:ignore
-    
+
     @property
     def background_color(self) -> QColor:
         return self.get_value_of('_background_color') # type:ignore
-    
+
     @property
     def background2_color(self) -> Optional[QColor]:
         return self.get_value_of('_background2_color', # type:ignore
                                  needed_attribute='_background_color')
-    
+
     @property
     def background_image(self) -> QImage:
         return self.get_value_of('_background_image') # type:ignore
@@ -399,7 +399,7 @@ class StyleAttributer:
     @property
     def text_color(self) -> QColor:
         return self.get_value_of('_text_color') # type:ignore
-    
+
     @property
     def font(self) -> QFont:
         if self._font is None:
@@ -409,30 +409,30 @@ class StyleAttributer:
             self._font.setWeight(
                 int(self.get_value_of('_font_width'))) # type:ignore
         return self._font
-        
-    def _get_font_metrics_cache(self) -> dict[str, float]:        
+
+    def _get_font_metrics_cache(self) -> dict[str, float]:
         font_name = str(self.get_value_of('_font_name'))
         font_size = str(self.get_value_of('_font_size'))
         font_width = str(self.get_value_of('_font_width'))
-        
+
         if not font_name in Theme.font_metrics_cache.keys():
             Theme.font_metrics_cache[font_name] = \
                 dict[str, dict[str, dict[str, float]]]()
-        
+
         if not font_size in Theme.font_metrics_cache[font_name].keys():
             Theme.font_metrics_cache[font_name][font_size] = \
                 dict[str, dict[str, float]]()
-        
+
         if not font_width in Theme.font_metrics_cache[font_name][font_size].keys():
             Theme.font_metrics_cache[font_name][font_size][font_width] = \
                 dict[str, float]()
-        
+
         return Theme.font_metrics_cache[font_name][font_size][font_width]
-            
+
     def get_text_width(self, string: str) -> float:
         if self._font_metrics_cache is None:
             self._font_metrics_cache = self._get_font_metrics_cache()
-        
+
         if string in self._font_metrics_cache.keys():
             return self._font_metrics_cache[string]
 
@@ -444,66 +444,66 @@ class StyleAttributer:
                 letter_size = QFontMetricsF(self.font).horizontalAdvance(s)
                 self._font_metrics_cache[s] = letter_size
                 tot_size += letter_size
-        
+
         self._font_metrics_cache[string] = tot_size
-        
+
         return tot_size
-    
+
     @property
     def port_in_offset(self) -> float:
         return self.get_value_of('_port_in_offset') # type:ignore
-    
+
     @property
     def port_out_offset(self) -> float:
         return self.get_value_of('_port_out_offset') # type:ignore
-    
+
     @property
     def port_in_offset_mode(self) -> str:
         return self.get_value_of('_port_in_offset_mode') # type:ignore
-    
+
     @property
     def port_out_offset_mode(self) -> str:
         return self.get_value_of('_port_out_offset_mode') # type:ignore
-    
+
     @property
     def port_spacing(self) -> float:
         return self.get_value_of('_port_spacing') # type:ignore
-    
+
     @property
     def port_type_spacing(self) -> float:
         return self.get_value_of('_port_type_spacing') # type:ignore
 
-    @property    
+    @property
     def icon_size(self) -> float:
         return self.get_value_of('_icon_size') # type:ignore
-    
+
     @property
     def grid_min_width(self) -> float:
         return self.get_value_of('_grid_min_width') # type:ignore
-    
+
     @property
     def grid_min_height(self) -> float:
         return self.get_value_of('_grid_min_height') # type:ignore
-    
+
     def _get_titles_templates_cache(self) -> TitleCache:
         font_name = str(self.get_value_of('_font_name'))
         font_size = str(self.get_value_of('_font_size'))
         font_width = str(self.get_value_of('_font_width'))
-        
+
         if not font_name in Theme.title_templates_cache.keys():
             Theme.title_templates_cache[font_name] = \
                 dict[str, dict[str, TitleCache]]()
-        
+
         if not font_size in Theme.title_templates_cache[font_name].keys():
             Theme.title_templates_cache[font_name][font_size] = \
                 dict[str, TitleCache]()
-        
+
         if not font_width in Theme.title_templates_cache[font_name][font_size].keys():
             Theme.title_templates_cache[font_name][font_size][font_width] = \
                 TitleCache()
-        
+
         return Theme.title_templates_cache[font_name][font_size][font_width]
-            
+
     def save_title_templates(
             self, title: str, handle_gui: bool, icon_size: int, templates: list):
         if self._titles_templates_cache is None:
@@ -513,26 +513,26 @@ class StyleAttributer:
             self._titles_templates_cache[title] = {}
 
         gui_key = 'with_gui' if handle_gui else 'without_gui'
-        
+
         if not gui_key in self._titles_templates_cache[title]:
             self._titles_templates_cache[title][gui_key] = {}
 
         self._titles_templates_cache[title][gui_key][icon_size] = templates
-    
+
     def get_title_templates(
             self, title: str, handle_gui: bool, icon_size: int) -> list[dict[str, int]]:
         if self._titles_templates_cache is None:
             self._titles_templates_cache = self._get_titles_templates_cache()
-        
+
         gui_key = 'with_gui' if handle_gui else 'without_gui'
-    
+
         if (title in self._titles_templates_cache
                 and gui_key in self._titles_templates_cache[title]
                 and icon_size in self._titles_templates_cache[title][gui_key]):
             return self._titles_templates_cache[title][gui_key][icon_size]
-        
+
         return []
-    
+
 
 class UnselectedStyleAttributer(StyleAttributer):
     def __init__(self, path: str, parent=None):
@@ -585,7 +585,7 @@ class GridStyleAttributer(StyleAttributer):
         StyleAttributer.__init__(self, path, parent)
         self._grid_min_width = 100.0
         self._grid_min_height = 100.0
-        
+
         self.technical_grid = StyleAttributer('.technical_grid', self)
         self.grid = StyleAttributer('.grid', self)
         self.chessboard = StyleAttributer('.chessboard', self)
@@ -601,12 +601,12 @@ class IconTheme:
         self.hardware_midi = src + 'DIN-5.svg'
         self.monitor_capture = src + 'monitor_capture.svg'
         self.monitor_playback = src + 'monitor_playback.svg'
-        
+
     def read_theme(self, theme_file: Path):
         icons_dir = theme_file.parent / 'icons'
         if not icons_dir.is_dir():
             return
-        
+
         for key in ('hardware_capture', 'hardware_playback', 'hardware_grouped',
                     'hardware_midi', 'monitor_capture', 'monitor_playback'):
             icon_path = icons_dir / f'{key}.svg'
@@ -620,15 +620,15 @@ class FontMetricsCacheType(TypedDict):
 
 class Theme(StyleAttributer):
     theme_file_path = Path()
-    
+
     # if for some reason cache may be incompatible with this version
-    # of the patchbay, we need to discard the cache files. 
+    # of the patchbay, we need to discard the cache files.
     CACHE_VERSION = (1, 3)
-    
+
     title_templates_cache: dict[str, dict[str, dict[str, TitleCache]]] = \
         {'CACHE_VERSION': CACHE_VERSION} # type:ignore
     font_metrics_cache: dict[str, dict[str, dict[str, dict[str, float]]]] = \
-        {'CACHE_VERSION': CACHE_VERSION} # type:ignore 
+        {'CACHE_VERSION': CACHE_VERSION} # type:ignore
         # CACHE_VERSION is the only one tuple[int, int]
 
     def __init__(self):
@@ -661,7 +661,7 @@ class Theme(StyleAttributer):
         self.scene_background_image = QImage()
         self.monitor_color = QColor(190, 158, 0)
         self.port_height = 16
-        
+
         self.port_grouped_width = 19
         self.box_spacing = 4
         self.box_spacing_horizontal = 24
@@ -685,16 +685,16 @@ class Theme(StyleAttributer):
         self.monitor_decoration = UnselectedStyleAttributer('.monitor_decoration', self)
         self.gui_button = GuiButtonStyleAttributer('.gui_button', self)
         self.grid = GridStyleAttributer('.grid', self)
-        
+
         self.subs += ['box', 'box_wrapper', 'box_header_line', 'box_shadow',
                       'portgroup', 'port', 'line',
                       'rubberband', 'hardware_rack',
                       'monitor_decoration', 'gui_button', 'grid']
-    
+
     @classmethod
     def set_file_path(cls, theme_file_path: Path):
         cls.theme_file_path = theme_file_path
-    
+
     @classmethod
     def load_cache(cls):
         cache_file = xdg.xdg_cache_home() / 'HoustonPatchbay' / 'patchbay_titles'
@@ -712,7 +712,7 @@ class Theme(StyleAttributer):
             except:
                 _logger.warning(f"failed to load cache {cache_file}")
                 return
-        
+
         font_cache_file = xdg.xdg_cache_home() / 'HoustonPatchbay' / 'patchbay_fonts'
         if not os.path.isfile(font_cache_file):
             return
@@ -725,7 +725,7 @@ class Theme(StyleAttributer):
             except:
                 _logger.error(f"failed to load font cache {font_cache_file}")
                 return
-    
+
     @classmethod
     def save_cache(cls):
         cache_dir = xdg.xdg_cache_home() / 'HoustonPatchbay'
@@ -737,16 +737,16 @@ class Theme(StyleAttributer):
 
         with open(cache_dir / 'patchbay_titles', 'wb') as f:
             pickle.dump(cls.title_templates_cache, f)
-        
+
         with open(cache_dir / 'patchbay_fonts', 'wb') as f:
             pickle.dump(cls.font_metrics_cache, f)
-    
+
     def read_theme(self, theme_dict: dict[str, dict], theme_file_path: Path):
-        '''theme_file_path is only used here to find external resources''' 
+        '''theme_file_path is only used here to find external resources'''
         if not isinstance(theme_dict, dict):
             _logger.error("invalid dict read error")
             return
-        
+
         Theme.set_file_path(theme_file_path)
         self.icon.read_theme(theme_file_path)
 
@@ -760,56 +760,56 @@ class Theme(StyleAttributer):
                     except:
                         _logger.warning(
                             f"failed to install font from file {str(font_path)}")
-        
+
         self.aliases.clear()
-        
+
         # first read if there are any aliases
         for key, value in theme_dict.items():
             if key != 'aliases':
                 continue
-            
+
             if not isinstance(value, dict):
                 _logger.error(f"'{key}' must contains a dictionnary, ignored")
                 continue
-            
+
             for alias_key, alias_value in value.items():
                 if not isinstance(alias_key, str):
                     _logger.error(
                         f"alias key must be a string. Ignore: {str(alias_key)}")
                     continue
-                
+
                 self.aliases[alias_key] = str(alias_value)
-            
+
             break
-        
+
         # read and parse the dict
         for key, value in theme_dict.items():
             if key in ('aliases', 'Theme'):
                 continue
-            
+
             begin, point, end = key.partition('.')
-            
+
             if not isinstance(value, dict):
                 _logger.error(f"'{key}' must contains a dictionnary, ignored")
                 continue
-            
+
             if begin not in ['body'] + self.subs:
                 _logger.error(f"invalid ignored block key: [{key}]")
                 continue
-            
+
             # replace alias with alias value
             for sub_key, sub_value in value.items():
                 if not isinstance(sub_value, str):
                     continue
-                
+
                 for alias_key, alias_value in self.aliases.items():
                     if alias_key not in sub_value:
                         continue
-                    
+
                     if sub_value == alias_key:
                         value[sub_key] = alias_value
                         break
-                    
+
                     new_words = list[str]()
 
                     for word in sub_value.split(' '):
@@ -817,9 +817,9 @@ class Theme(StyleAttributer):
                             new_words.append(alias_value)
                         else:
                             new_words.append(word)
-                    
+
                     value[sub_key] = ' '.join(new_words)
-            
+
             if key == 'body':
                 for body_key, body_value in value.items():
                     match body_key:
@@ -831,7 +831,7 @@ class Theme(StyleAttributer):
                             self.__setattr__(body_key.replace('-', '_'), body_value)
 
                         case 'box-spacing':
-                            # box_spacing must be an even number 
+                            # box_spacing must be an even number
                             if not isinstance(body_value, int):
                                 continue
                             self.box_spacing = 2 * (body_value // 2)
@@ -845,7 +845,7 @@ class Theme(StyleAttributer):
                         case 'background-image':
                             if not isinstance(body_value, str):
                                 continue
-                            
+
                             background_path = \
                                 theme_file_path.parent / 'images' / body_value
                             if background_path.is_file():
@@ -867,7 +867,7 @@ class Theme(StyleAttributer):
                             if monitor_color is None:
                                 monitor_color = QColor(190, 158, 0)
                             self.monitor_color = monitor_color
-                        
+
                         case 'thumbnail_port_colors':
                             self.thumbnail_port_colors = str(body_value)
 

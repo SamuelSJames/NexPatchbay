@@ -36,7 +36,7 @@ class Portgroup:
     def full_type(self) -> tuple[PortType, PortSubType]:
         if not self.ports:
             return (PortType.NULL, PortSubType.REGULAR)
-        
+
         return self.ports[0].full_type
 
     def update_ports_in_canvas(self):
@@ -54,7 +54,7 @@ class Portgroup:
 
         if self.in_canvas:
             return
-    
+
         if not self.manager.port_type_shown(self.full_type):
             return
 
@@ -75,7 +75,7 @@ class Portgroup:
     def remove_from_canvas(self):
         if self.manager.very_fast_operation:
             return
-        
+
         if not self.in_canvas:
             return
 

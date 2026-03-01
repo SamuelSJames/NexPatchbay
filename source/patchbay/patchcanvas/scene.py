@@ -37,23 +37,23 @@ from .scene_view import PatchGraphicsView
 class BoxAndRect:
     rect: QRectF
     item: BoxWidgetMoth
-    
-        
+
+
 @dataclass
 class ToMoveBox:
     directions: list[Direction]
     item: BoxWidgetMoth
     rect: QRectF
     repulser: BoxAndRect
-        
+
     def __lt__(self, other: 'ToMoveBox'):
         if self.directions != other.directions:
             return self.directions < other.directions
-        
+
         # should not happen
         if not self.directions:
             return True
-        
+
         last_direc = self.directions[-1]
         if last_direc is Direction.LEFT:
             return self.rect.right() > other.rect.right()
@@ -63,10 +63,10 @@ class ToMoveBox:
             return self.rect.left() < other.rect.left()
         if last_direc is Direction.DOWN:
             return self.rect.top() < other.rect.top()
-        
+
         # should not happen
         return True
-    
+
 
 class PatchScene(PatchSceneMoth):
     '''This class part of the scene is for repulsive boxes option
@@ -91,22 +91,22 @@ class PatchScene(PatchSceneMoth):
                     if Direction.LEFT in parent_directions:
                         return Direction.LEFT
                     return Direction.RIGHT
-                
+
                 if (fixed_rect.left() > moving_rect.center().x()
                         and fixed_rect.center().x() > moving_rect.right()):
                     if Direction.RIGHT in parent_directions:
                         return Direction.RIGHT
                     return Direction.LEFT
-            
+
             if fixed_rect.center().y() <= moving_rect.center().y():
                 if Direction.UP in parent_directions:
                     return Direction.UP
                 return Direction.DOWN
-            
+
             if Direction.DOWN in parent_directions:
                 return Direction.DOWN
             return Direction.UP
-        
+
         def repulse(direction: Direction,
                     fixed: BoxWidgetMoth | QRectF,
                     moving: BoxWidgetMoth | QRectF,
@@ -119,25 +119,25 @@ class PatchScene(PatchSceneMoth):
                 fixed_rect = fixed.boundingRect().translated(fixed.pos())
             else:
                 fixed_rect = fixed
-            
+
             if isinstance(moving, BoxWidgetMoth):
                 rect = moving.boundingRect().translated(moving.pos())
             else:
                 rect = moving
-            
+
             x = rect.left()
             y = rect.top()
-            
+
             spacing = canvas.theme.box_spacing
             spacing_hor = canvas.theme.box_spacing_horizontal
-            
+
             if direction in (Direction.LEFT, Direction.RIGHT):
                 if direction is Direction.LEFT:
                     if (fixed_port_mode & PortMode.INPUT
                             or moving_port_mode & PortMode.OUTPUT):
                         x = previous_left_on_grid(
                             fixed_rect.left() - rect.width() - spacing_hor)
-                    else: 
+                    else:
                         x = previous_left_on_grid(
                             fixed_rect.left() - rect.width() - spacing)
                 else:
@@ -164,7 +164,7 @@ class PatchScene(PatchSceneMoth):
 
                 left_diff = abs(fixed_rect.left() - rect.left())
                 right_diff = abs(fixed_rect.right() - rect.right())
-                
+
                 if right_diff > left_diff and left_diff <= magnet:
                     x = fixed_rect.left()
                 elif right_diff <= magnet:
@@ -180,7 +180,7 @@ class PatchScene(PatchSceneMoth):
             if (repulser_port_mode & PortMode.INPUT
                     or rect_port_mode & PortMode.OUTPUT):
                 left_spacing = box_spacing_hor
-            
+
             if (repulser_port_mode & PortMode.OUTPUT
                     or rect_port_mode & PortMode.INPUT):
                 right_spacing = box_spacing_hor
@@ -199,7 +199,7 @@ class PatchScene(PatchSceneMoth):
         # --- function start ---
         if not options.prevent_overlap:
             return
-        
+
         box_spacing = canvas.theme.box_spacing
         box_spacing_hor = canvas.theme.box_spacing_horizontal
         magnet = canvas.theme.magnet
@@ -207,13 +207,13 @@ class PatchScene(PatchSceneMoth):
         to_move_boxes = list[ToMoveBox]()
         repulsers = list[BoxAndRect]()
         wanted_directions = [wanted_direction]
-        
+
         normal_margins = QMarginsF(
             canvas.theme.box_spacing_horizontal,
-            canvas.theme.box_spacing, 
+            canvas.theme.box_spacing,
             canvas.theme.box_spacing_horizontal,
             canvas.theme.box_spacing)
-        
+
         for box in repulser_boxes:
             self._full_repulse_boxes.add(box)
 
@@ -247,7 +247,7 @@ class PatchScene(PatchSceneMoth):
                     if not rect_may_have_to_move_from(
                             repulser.rect, moving_box.final_rect):
                         continue
-                        
+
                     if rect_has_to_move_from(
                             repulser.rect, moving_box.final_rect,
                             repulser.item.get_current_port_mode(),
@@ -257,17 +257,17 @@ class PatchScene(PatchSceneMoth):
             else:
                 search_rect = srect.marginsAdded(
                 QMarginsF(canvas.theme.box_spacing_horizontal,
-                          canvas.theme.box_spacing, 
+                          canvas.theme.box_spacing,
                           canvas.theme.box_spacing_horizontal,
                           canvas.theme.box_spacing))
-                
+
                 # search intersections in non moving boxes
                 for widget in self.items(
                         search_rect, Qt.ItemSelectionMode.IntersectsItemShape,
                         Qt.SortOrder.AscendingOrder):
                     if not isinstance(widget, BoxWidgetMoth):
                         continue
-                    
+
                     if (widget in repulser_boxes
                             or widget in [b.item for b in to_move_boxes]
                             or widget in self.move_boxes):
@@ -289,13 +289,13 @@ class PatchScene(PatchSceneMoth):
                         continue
 
                     irect = moving_box.final_rect
-                    
+
                     if rect_has_to_move_from(
                             repulser.rect, irect,
                             repulser.item.get_current_port_mode(),
                             widget.get_current_port_mode()):
                         items_to_move.append(BoxAndRect(irect, widget))
-            
+
             for item_to_move in items_to_move:
                 item = item_to_move.item
                 irect = item_to_move.rect
@@ -320,7 +320,7 @@ class PatchScene(PatchSceneMoth):
             new_rect = repulse(new_direction, repulser.rect, irect,
                                repulser.item.get_current_port_mode(),
                                item.get_current_port_mode())
-            
+
             active_repulsers = list[BoxAndRect]()
 
             # while there is a repulser rect at new box position
@@ -337,7 +337,7 @@ class PatchScene(PatchSceneMoth):
                         if repulser in active_repulsers:
                             continue
                         active_repulsers.append(repulser)
-                        
+
                         new_direction = get_direction(
                             repulser.rect, new_rect, directions)
                         new_rect = repulse(
@@ -354,7 +354,7 @@ class PatchScene(PatchSceneMoth):
             repulser = BoxAndRect(new_rect, item)
             repulsers.append(repulser)
             self._full_repulse_boxes.add(item)
-            
+
             # check which existing boxes exists at the new place of the box
             # and add them to this to_move_boxes iteration
             adding_list = list[ToMoveBox]()
@@ -362,11 +362,11 @@ class PatchScene(PatchSceneMoth):
             if mov_repulsables is not None:
                 for moving_box in mov_repulsables: # type:ignore
                     mitem = moving_box.widget
-                    
+
                     if (mitem in [r.item for r in repulsers]
                             or mitem in [b.item for b in to_move_boxes]):
                         continue
-                    
+
                     if rect_has_to_move_from(
                             new_rect, moving_box.final_rect,
                             to_move_box.item.get_current_port_mode(),
@@ -377,10 +377,10 @@ class PatchScene(PatchSceneMoth):
             else:
                 search_rect = new_rect.marginsAdded(
                     QMarginsF(canvas.theme.box_spacing_horizontal,
-                            canvas.theme.box_spacing, 
+                            canvas.theme.box_spacing,
                             canvas.theme.box_spacing_horizontal,
                             canvas.theme.box_spacing))
-                
+
                 for widget in self.items(search_rect):
                     if not isinstance(widget, BoxWidgetMoth):
                         continue
@@ -388,21 +388,21 @@ class PatchScene(PatchSceneMoth):
                             or widget in [b.item for b in to_move_boxes]
                             or widget in self.move_boxes):
                         continue
-                    
+
                     mirect = widget.sceneBoundingRect()
                     if rect_has_to_move_from(
                             new_rect, mirect,
                             to_move_box.item.get_current_port_mode(),
                             widget.get_current_port_mode()):
                         adding_list.append(
-                            ToMoveBox(directions, widget, mirect, repulser))                        
-                
-                for mitem, moving_box in self.move_boxes.items():                    
+                            ToMoveBox(directions, widget, mirect, repulser))
+
+                for mitem, moving_box in self.move_boxes.items():
                     if (mitem in [r.item for r in repulsers]
                             or moving_box.final_rect.isNull()
                             or mitem in [b.item for b in to_move_boxes]):
                         continue
-                    
+
                     if rect_has_to_move_from(
                             new_rect, moving_box.final_rect,
                             to_move_box.item.get_current_port_mode(),
@@ -444,20 +444,20 @@ class PatchScene(PatchSceneMoth):
                                 if mb.widget in self._full_repulse_boxes]
             for to_rm_mb in to_rm_movboxes:
                 moving_boxes.remove(to_rm_mb)
-        
+
         self._full_repulse_boxes.clear()
 
     def bring_neighbors_and_deplace_boxes(
             self, box_widget: BoxWidgetMoth, ex_rect: QRectF):
         if not options.prevent_overlap:
             return
-        
+
         neighbors = [box_widget]
         limit_top = ex_rect.top()
         less_y = ex_rect.height() - box_widget.after_wrap_rect().height()
-        
+
         box_spacing = canvas.theme.box_spacing
-        
+
         for neighbor in neighbors:
             if neighbor is box_widget:
                 srect = ex_rect
@@ -473,19 +473,19 @@ class PatchScene(PatchSceneMoth):
                     srect.adjusted(0, 0, 0,
                                    box_spacing + 1)):
                 if item not in neighbors and isinstance(item, BoxWidgetMoth):
-                    nrect = item.after_wrap_rect().translated(item.pos())                    
+                    nrect = item.after_wrap_rect().translated(item.pos())
                     if nrect.top() >= limit_top:
                         neighbors.append(item)
-        
+
         neighbors.remove(box_widget)
 
         repulser_boxes = list[BoxWidgetMoth]()
 
         for neighbor in neighbors:
-            x, y = neighbor.top_left()           
+            x, y = neighbor.top_left()
             self.add_box_to_animation(neighbor, x, int(y - less_y))
             repulser_boxes.append(neighbor)
         repulser_boxes.append(box_widget)
-        
+
         self.deplace_boxes_from_repulsers(
             repulser_boxes, wanted_direction=Direction.UP)

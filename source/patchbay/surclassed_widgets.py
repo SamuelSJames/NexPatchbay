@@ -56,19 +56,19 @@ class ProgressBarDsp(QProgressBar):
             + "stop:0.5 " + color_center + ','
             + "stop:1 " + color_border + ',' + ')}')
         QProgressBar.setValue(self, value)
-        
+
 
 class ZoomSlider(QSlider):
     def __init__(self, parent):
         QSlider.__init__(self, parent)
-        
+
         self._mng = None
         self.setMinimumSize(QSize(40, 0))
         self.setMaximumSize(QSize(90, 16777215))
         self.setMouseTracking(True)
 
         dark_theme = self.palette().text().color().lightnessF() > 0.5
-        dark = '-dark' if dark_theme else '' 
+        dark = '-dark' if dark_theme else ''
 
         self.setStyleSheet(
             'QSlider:focus{border: none;} '
@@ -86,7 +86,7 @@ class ZoomSlider(QSlider):
         self.setInvertedControls(False)
         self.setTickPosition(QSlider.TickPosition.TicksBelow)
         self.setTickInterval(500)
-        
+
         self.valueChanged.connect(self._value_changed)
 
     @staticmethod
@@ -107,7 +107,7 @@ class ZoomSlider(QSlider):
     def _value_changed(self, value: int):
         if self._mng is None:
             return
-        
+
         self._mng.set_zoom(self.zoom_percent())
 
     def set_patchbay_manager(self, patchbay_manager: 'PatchbayManager'):
@@ -158,23 +158,23 @@ class ZoomSlider(QSlider):
     def mouseMoveEvent(self, event: QMouseEvent):
         QSlider.mouseMoveEvent(self, event)
         self._show_tool_tip()
-        
+
         if self._mng is not None and event.buttons():
             self._mng.start_aliasing_check(AliasingReason.SCROLL_BAR_MOVE)
-            
+
     def mouseReleaseEvent(self, event):
         super().mouseReleaseEvent(event)
-        
+
         if self._mng is not None:
             self._mng.set_aliasing_reason(AliasingReason.SCROLL_BAR_MOVE, False)
 
 
 class TimeTransportLabel(QLabel):
     transport_view_changed = Signal()
-    
+
     def __init__(self, parent=None):
         super().__init__(parent)
-        
+
         self._actions = {
             TransportViewMode.HOURS_MINUTES_SECONDS:
                 QAction(_translate('transport', 'Hours:Minutes:Seconds')),
@@ -182,7 +182,7 @@ class TimeTransportLabel(QLabel):
                 QAction(_translate('transport', 'Beat|Bar|Tick')),
             TransportViewMode.FRAMES:
                 QAction(_translate('transport', 'Frames'))}
-        
+
         self._context_menu = QMenu()
 
         for key, action in self._actions.items():
@@ -190,10 +190,10 @@ class TimeTransportLabel(QLabel):
             action.setChecked(False)
             action.setData(key)
             self._context_menu.addAction(action)
-        
+
         self.transport_view_mode = TransportViewMode.HOURS_MINUTES_SECONDS
         self._actions[TransportViewMode.HOURS_MINUTES_SECONDS].setChecked(True)
-        
+
     def _update_tool_tip(self):
         text = ""
         if self.transport_view_mode is TransportViewMode.HOURS_MINUTES_SECONDS:
@@ -202,22 +202,22 @@ class TimeTransportLabel(QLabel):
             text = _translate('transport', 'Beat|Bar|Tick')
         elif self.transport_view_mode is TransportViewMode.FRAMES:
             text = _translate('transport', 'Frames')
-        
+
         self.setToolTip(text)
-        
+
     def mousePressEvent(self, event: QMouseEvent):
         for key, action in self._actions.items():
             action.setChecked(self.transport_view_mode is key)
-        
+
         act_selected = self._context_menu.exec(
             self.mapToGlobal(QPoint(0, self.height())))
 
         if act_selected is not None:
             data: TransportViewMode = act_selected.data()
-            self.transport_view_mode = data            
+            self.transport_view_mode = data
             self.transport_view_changed.emit()
             self._update_tool_tip()
-    
+
     def wheelEvent(self, event):
         self.transport_view_mode = TransportViewMode(
             (self.transport_view_mode + 1) % 3)
@@ -227,10 +227,10 @@ class TimeTransportLabel(QLabel):
 
 class TypeViewCheckBox(QCheckBox):
     really_clicked = Signal(bool)
-    
+
     def __init__(self, parent=None):
         super().__init__(parent)
-    
+
     def mousePressEvent(self, event: QMouseEvent) -> None:
         if event.button() in (Qt.MouseButton.LeftButton, Qt.MouseButton.RightButton):
             alternate = bool(
@@ -238,7 +238,7 @@ class TypeViewCheckBox(QCheckBox):
                 or QApplication.keyboardModifiers() & Qt.KeyboardModifier.ControlModifier)
             self.really_clicked.emit(alternate)
             return
-    
+
         super().mousePressEvent(event)
 
 
@@ -249,32 +249,32 @@ class ViewsComboBox(QComboBox):
         self._editing_text = ''
         self._selected_index = 0
         self._selected_view = 1
-        
+
         dark = self.palette().text().color().lightnessF() > 0.5
         color_scheme = 'breeze-dark' if dark else 'breeze'
-        
+
         self._white_image = QPixmap(
             f':scalable/{color_scheme}/color-picker-white.svg').toImage()
-        
+
         self.editTextChanged.connect(self._edit_text_changed)
         self.view().setMinimumWidth(800)
-    
+
     def set_editable(self):
         self._selected_index = self.currentIndex()
         self._selected_view = self.currentData()
         self.setEditable(True)
         self.lineEdit().selectAll()
         self.lineEdit().setFocus()
-    
+
     @Slot(str)
     def _edit_text_changed(self, text: str):
         self._editing_text = text
-    
+
     def sizeHint(self) -> QSize:
         size = super().sizeHint()
         size.setWidth(size.width() + 40)
         return size
-    
+
     def keyPressEvent(self, event: QKeyEvent):
         if self.isEditable():
             if event.key() in (Qt.Key.Key_Return, Qt.Key.Key_Enter):
@@ -295,8 +295,8 @@ class ViewsComboBox(QComboBox):
             if event.key() in (Qt.Key.Key_Up, Qt.Key.Key_Down):
                 previous_index = self.currentIndex()
                 super().keyPressEvent(event)
-                
-                # set arrow keys Up/Down circular 
+
+                # set arrow keys Up/Down circular
                 if self.currentIndex() == previous_index:
                     if previous_index == 0:
                         self.setCurrentIndex(self.count() - 1)
@@ -305,7 +305,7 @@ class ViewsComboBox(QComboBox):
                 return
 
         super().keyPressEvent(event)
-    
+
     def wheelEvent(self, event: QWheelEvent) -> None:
         previous_index = self.currentIndex()
         super().wheelEvent(event)
@@ -316,17 +316,17 @@ class ViewsComboBox(QComboBox):
                 self.setCurrentIndex(self.count() - 1)
             else:
                 self.setCurrentIndex(0)
-    
+
     def mouseDoubleClickEvent(self, event: QMouseEvent) -> None:
         super().mouseDoubleClickEvent(event)
         if self.isEditable():
             self.setEditable(False)
         else:
             self.set_editable()
-    
+
     def paintEvent(self, event: QPaintEvent):
         painter = QPainter(self)
-        
+
         # Draw rect
         bg_col = self.palette().alternateBase().color()
         painter.setPen(QPen(self.palette().midlight().color(), 1.0))
@@ -335,12 +335,12 @@ class ViewsComboBox(QComboBox):
             QRectF(0.0, 1.0, self.width(),
                    self.height() - 2.0),
             2.0, 2.0)
-        
-        # Draw text      
+
+        # Draw text
         painter.setPen(QPen(QApplication.palette().text().color(), 1.0))
-        
+
         font = QApplication.font()
-        
+
         text_pos = QPoint(6, (self.height() + font.pointSize()) // 2 )
         painter.setFont(font)
         painter.drawText(text_pos, self.currentText())
@@ -355,47 +355,47 @@ class ViewsComboBox(QComboBox):
         path.lineTo(
             QPointF(self.width() - arrow_side * 2, arrow_side * 3))
         painter.drawPath(path)
-        
+
         # Draw PortTypesView thumbnail
         thmp = patchcanvas.canvas.theme.port
 
         if patchcanvas.canvas.theme.thumbnail_port_colors.lower() == 'text':
             pcols = [thmp.audio.text_color,
                      thmp.midi.text_color,
-                     thmp.cv.text_color, 
+                     thmp.cv.text_color,
                      thmp.alsa.text_color]
         else:
             pcols = [thmp.audio.background_color,
                      thmp.midi.background_color,
-                     thmp.cv.background_color, 
+                     thmp.cv.background_color,
                      thmp.alsa.background_color]
-        
+
         # adapt colors lightness to be clearly visible on this background
         bg_ligthness = bg_col.lightnessF()
         if bg_ligthness > 0.5:
             for i in range(len(pcols)):
                 while bg_ligthness - pcols[i].lightnessF() < 0.25:
                     pcols[i] = pcols[i].darker()
-                    
+
                     if pcols[i].lightnessF() == 0.0:
                         break
         else:
-            for i in range(len(pcols)):                
+            for i in range(len(pcols)):
                 while pcols[i].lightnessF() - bg_ligthness < 0.25:
                     pcols[i] = pcols[i].lighter()
-                    
+
                     if pcols[i].lightnessF() == 1.0:
                         break
 
         mng = self._parent.mng
         if mng is None:
             return
-        
+
         hgt = int(self.height())
         SPAC = 4
         Y_OFFSET = 10
         XBASE = int(self.width() - 40)
-        
+
         ptvs = [PortTypesViewFlag.AUDIO, PortTypesViewFlag.MIDI,
                 PortTypesViewFlag.CV]
         if mng.alsa_midi_enabled:
@@ -409,7 +409,7 @@ class ViewsComboBox(QComboBox):
             else:
                 painter.drawLine(XBASE + i * SPAC, hgt // 2 - 1,
                                  XBASE + i * SPAC, hgt // 2 + 1)
-        
+
         view_data = mng.views.get(mng.view_number)
         if view_data is not None and view_data.is_white_list:
             white_list_image_rect = QRectF(
@@ -419,7 +419,7 @@ class ViewsComboBox(QComboBox):
 
 class ToolsWidgetFrame(QFrame):
     ...
-        
+
 
 class SpacerWidget(QWidget):
     ...

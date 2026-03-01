@@ -80,7 +80,7 @@ class MovingBox:
     is_wrapping: bool
     hidding_state: BoxHidding
     needs_move: bool
-    
+
     def __init__(self, widget: BoxWidgetMoth):
         self.widget = widget
         self.from_pt = QPointF(*widget.top_left())
@@ -91,7 +91,7 @@ class MovingBox:
         self.is_wrapping = False
         self.hidding_state = BoxHidding.NONE
         self.needs_move = False
-    
+
     def is_usefull(self) -> bool:
         if self.needs_move or self.is_wrapping:
             return True
@@ -102,15 +102,15 @@ class SelectingBoxes:
     '''Context for 'with' statment. Used when mutiple boxes are selected.'''
     def __init__(self, scene: 'PatchSceneMoth'):
         self.scene = scene
-    
+
     def __enter__(self):
         self.scene.selecting_boxes = True
-        
+
     def __exit__(self, *args, **kwargs):
         GroupedLinesWidget.reset_z_values_with_selection(
             self.scene.get_selected_boxes())
         self.scene.selecting_boxes = False
- 
+
 
 class PatchSceneMoth(QGraphicsScene):
     " This class is used for the scene. "
@@ -147,7 +147,7 @@ class PatchSceneMoth(QGraphicsScene):
         self.prevent_box_user_move = False
         '''During view change, this attr must be set to True
         to prevent user to take and move a box.'''
-        
+
         self.move_boxes = dict[BoxWidgetMoth, MovingBox]()
         self._MOVE_DURATION = 0.300 # 300ms
         self._MOVE_TIMER_INTERVAL = 20 # 20 ms step animation (50 Hz)
@@ -174,7 +174,7 @@ class PatchSceneMoth(QGraphicsScene):
         if there are many box selected, because of itemChange
         in BoxWidgetMoth. If this attribute is True, we can prevent
         actions for each box.
-        
+
         Should be never directly set,
         use 'with SelectingBoxes(self):' instead.'''
 
@@ -191,7 +191,7 @@ class PatchSceneMoth(QGraphicsScene):
     def deplace_boxes_from_repulsers(self, repulser_boxes: list[BoxWidget],
                                      wanted_direction=Direction.NONE,
                                      new_scene_rect=None):
-        '''Change the place of boxes in order to have no 
+        '''Change the place of boxes in order to have no
         box overlapping other boxes.'''
         # just for easier syntax, this method is overloaded in scene.py
         # but executed in this file too.
@@ -200,7 +200,7 @@ class PatchSceneMoth(QGraphicsScene):
     def clear(self):
         # reimplement Qt function and fix missing rubberband after clear
         self.move_boxes.clear()
-        
+
         QGraphicsScene.clear(self)
         self._rubberband = RubberbandRect(self)
         self._grid_widget = None
@@ -252,9 +252,9 @@ class PatchSceneMoth(QGraphicsScene):
         ''' This function is called every 50 ms when mouse
             left button is pressed. It moves the view if the mouse cursor
             is near a border of the view (in the limits of the scene size). '''
-        # max speed of the drag when mouse is at a side pixel of the view  
+        # max speed of the drag when mouse is at a side pixel of the view
         SPEED = 0.8
-        
+
         # Acceleration, doesn't affect max speed
         POWER = 14
 
@@ -264,30 +264,30 @@ class PatchSceneMoth(QGraphicsScene):
             view_width -= self._view.verticalScrollBar().width()
         if self._view.horizontalScrollBar().isVisible():
             view_height -= self._view.horizontalScrollBar().height()
-        
+
         view_cpos = self._view.mapFromGlobal(QCursor.pos())
         scene_cpos = self._view.mapToScene(view_cpos)
-        
-        # The scene relative area we want to be visible in the view 
+
+        # The scene relative area we want to be visible in the view
         ensure_rect = QRectF(scene_cpos.x() - 1.0,
                              scene_cpos.y() - 1.0,
                              2.0, 2.0)
-        
+
         # the scene relative area currently visible in the view
         vs_rect = QRectF(
             QPointF(self._view.mapToScene(0, 0)),
             QPointF(self._view.mapToScene(view_width - 1, view_height -1)))
-        
+
         # The speed of the move depends on the scene size
         # to allow fast moves from one scene corner to another one.
         speed_hor = (SPEED * (self.sceneRect().width() - vs_rect.width())
-                     / vs_rect.width()) 
+                     / vs_rect.width())
         speed_ver = (SPEED * (self.sceneRect().height() - vs_rect.height())
                      / vs_rect.height())
 
         interval_hor = vs_rect.width() / 2
         interval_ver = vs_rect.height() / 2
-        
+
         # Navigation is allowed in a direction only if mouse cursor has
         # already been moved in this direction, in order to prevent unintended
         # moves when user just pressed the mouse button.
@@ -305,16 +305,16 @@ class PatchSceneMoth(QGraphicsScene):
                 self._allowed_nav_directions.add(Direction.DOWN)
 
         self._last_view_cpos = view_cpos
-        
+
         # Define the limits we want to see in the view
         # Note that the zone where there is no move is defined by the fact
         # the move in a direction is converted from float to int.
         # This way, a move lower than 1.0 pixel will be ignored.
         # By chance, the lower possible speed is good
-        # 1.0 pixel * (1s / 0.050s) = 20 pixels/second. 
-        
+        # 1.0 pixel * (1s / 0.050s) = 20 pixels/second.
+
         apply = False
-        
+
         if (Direction.LEFT in self._allowed_nav_directions
                 and scene_cpos.x() < vs_rect.center().x()):
             offset = vs_rect.center().x() - max(scene_cpos.x(), vs_rect.left())
@@ -334,7 +334,7 @@ class PatchSceneMoth(QGraphicsScene):
             ensure_rect.moveRight(min(right, self.sceneRect().right()))
             if int(move_x):
                 apply = True
-            
+
         if (Direction.UP in self._allowed_nav_directions
                 and scene_cpos.y() < vs_rect.center().y()):
             offset = vs_rect.center().y() - max(scene_cpos.y(), vs_rect.top())
@@ -344,7 +344,7 @@ class PatchSceneMoth(QGraphicsScene):
             ensure_rect.moveTop(max(top, self.sceneRect().top()))
             if int(move_y):
                 apply = True
-        
+
         elif (Direction.DOWN in self._allowed_nav_directions
                 and scene_cpos.y() > vs_rect.center().y()):
             offset = min(scene_cpos.y(), vs_rect.bottom()) - vs_rect.center().y()
@@ -354,7 +354,7 @@ class PatchSceneMoth(QGraphicsScene):
             ensure_rect.moveBottom(min(bottom, self.sceneRect().bottom()))
             if int(move_y):
                 apply = True
-        
+
         if apply:
             canvas.qobject.start_aliasing_check(
                 AliasingReason.NAV_ON_BORDERS)
@@ -409,7 +409,7 @@ class PatchSceneMoth(QGraphicsScene):
         move_time = time.time()
         time_since_start = move_time - self._move_timer_start_at
         ratio = min(1.0, time_since_start / self._MOVE_DURATION)
-        
+
         if self._move_timer_last_time == self._move_timer_start_at:
             # this is the first animation step
             if time_since_start > 0.33 * self._MOVE_DURATION:
@@ -435,12 +435,12 @@ class PatchSceneMoth(QGraphicsScene):
         for box, moving_box in self.move_boxes.items():
             if not usefull:
                 usefull = moving_box.is_usefull()
-                            
+
             if moving_box.needs_move:
                 x = (moving_box.from_pt.x()
                         + ((moving_box.to_pt.x() - moving_box.from_pt.x())
                         * (ratio ** 0.6)))
-                
+
                 y = (moving_box.from_pt.y()
                         + ((moving_box.to_pt.y() - moving_box.from_pt.y())
                         * (ratio ** 0.6)))
@@ -450,14 +450,14 @@ class PatchSceneMoth(QGraphicsScene):
 
             if moving_box.is_wrapping:
                 box.animate_wrapping(ratio)
-            
+
             if moving_box.hidding_state in (BoxHidding.HIDDING,
                                             BoxHidding.RESTORING):
                 if moving_box.hidding_state is BoxHidding.HIDDING:
                     box.animate_hidding(ratio)
                 else:
                     box.animate_restoring(ratio)
-                    
+
                 for lw in GroupedLinesWidget.widgets_for_box(
                         box._group_id, box._port_mode):
                     if lw not in lws:
@@ -482,7 +482,7 @@ class PatchSceneMoth(QGraphicsScene):
             # then we can ask update_positions on widgets
             boxes = [b for b, mb in self.move_boxes.items()
                      if not (mb.is_joining or mb.hidding_state is BoxHidding.HIDDING)]
-            
+
             self.move_boxes.clear()
 
             for box in boxes:
@@ -516,7 +516,7 @@ class PatchSceneMoth(QGraphicsScene):
         moving_box.from_pt = QPointF(*box_widget.top_left())
         moving_box.to_pt = QPointF(to_x, to_y)
         moving_box.needs_move = bool(moving_box.from_pt != moving_box.to_pt)
-        
+
         if joining is Joining.YES or not box_widget.isVisible():
             moving_box.final_rect = joined_rect
 
@@ -534,7 +534,7 @@ class PatchSceneMoth(QGraphicsScene):
                 0.0, 0.0, aft_wrap_rect.width(), aft_wrap_rect.height())
             final_rect.translate(moving_box.to_pt)
             moving_box.final_rect = final_rect
-        
+
         else:
             # can not happens
             # would means moving_box.is_joining and joining is JOINING.NO,
@@ -558,9 +558,9 @@ class PatchSceneMoth(QGraphicsScene):
 
         if not self._move_box_timer.isActive():
             moving_box.start_time = 0.0
-            
+
         self._start_move_timer()
-            
+
         if canvas.aliasing_reason:
             # if antialiasing is already prevented
             # we need to keep it prevented at animation start
@@ -577,20 +577,20 @@ class PatchSceneMoth(QGraphicsScene):
         if box_widget in self.move_boxes:
             self.move_boxes.pop(box_widget)
 
-    def add_box_to_animation_wrapping(self, box_widget: BoxWidgetMoth, wrap: bool):  
+    def add_box_to_animation_wrapping(self, box_widget: BoxWidgetMoth, wrap: bool):
         moving_box = self.move_boxes.get(box_widget)
         if moving_box is None:
             moving_box = MovingBox(box_widget)
             self.move_boxes[box_widget] = moving_box
-        
+
         moving_box.start_time = time.time() - self._move_timer_start_at
-    
+
         aft_wrap_rect = box_widget.after_wrap_rect()
         final_rect = QRectF(0.0, 0.0, aft_wrap_rect.width(), aft_wrap_rect.height())
         moving_box.final_rect = \
             final_rect.translated(moving_box.to_pt)
         moving_box.is_wrapping = True
-        
+
         self._start_move_timer()
 
     def add_box_to_animation_hidding(self, box_widget: BoxWidget):
@@ -598,11 +598,11 @@ class PatchSceneMoth(QGraphicsScene):
         if moving_box is None:
             moving_box = MovingBox(box_widget)
             self.move_boxes[box_widget] = moving_box
-        
+
         moving_box.start_time = time.time() - self._move_timer_start_at
         moving_box.final_rect = QRectF()
         moving_box.hidding_state = BoxHidding.HIDDING
-        
+
         for port_mode in PortMode.OUTPUT, PortMode.INPUT:
             if port_mode not in box_widget.get_port_mode():
                 continue
@@ -610,7 +610,7 @@ class PatchSceneMoth(QGraphicsScene):
             for lw in GroupedLinesWidget.widgets_for_box(
                     box_widget.get_group_id(), port_mode):
                 lw.set_mode_hidding(port_mode, BoxHidding.HIDDING)
-        
+
         self._start_move_timer()
 
     def add_box_to_animation_restore(self, box_widget: BoxWidget):
@@ -645,7 +645,7 @@ class PatchSceneMoth(QGraphicsScene):
     def remove_box(self, box_widget: BoxWidget):
         if box_widget in self.move_boxes:
             self.move_boxes.pop(box_widget)
-        
+
         self.removeItem(box_widget)
 
     def center_view_on(self, widget):
@@ -687,7 +687,7 @@ class PatchSceneMoth(QGraphicsScene):
             self.setBackgroundBrush(bg_brush)
         else:
             self.setBackgroundBrush(canvas.theme.scene_background_color)
-        
+
         self._rubberband.setPen(canvas.theme.rubberband.fill_pen)
         self._rubberband.setBrush(canvas.theme.rubberband.background_color)
 
@@ -696,13 +696,13 @@ class PatchSceneMoth(QGraphicsScene):
         self._cursor_cut = QCursor(QPixmap(f":/cursors/cut-{cur_color}.png"), 1, 1)
         self._cursor_zoom_area = QCursor(
             QPixmap(f":/cursors/zoom-area-{cur_color}.png"), 8, 7)
-        
+
         self.update_grid_style()
 
     def drawBackground(self, painter, rect):
         painter.save()
         painter.setPen(Qt.PenStyle.NoPen)
-        
+
         if (canvas.theme.scene_background_image is not None
                 and not canvas.theme.scene_background_image.isNull()):
             canvas.theme.scene_background_image.setDevicePixelRatio(3.0)
@@ -711,7 +711,7 @@ class PatchSceneMoth(QGraphicsScene):
             painter.setBrush(bg_brush)
             painter.drawRect(rect)
 
-        painter.setBrush(canvas.theme.scene_background_color)        
+        painter.setBrush(canvas.theme.scene_background_color)
         painter.drawRect(rect)
         painter.restore()
 
@@ -723,26 +723,26 @@ class PatchSceneMoth(QGraphicsScene):
                 full_rect |= widget.rect_needed_in_scene()
 
             return full_rect
-        
+
         futur_rect = QRectF()
-        
+
         for widget in canvas.list_boxes():
             move_box = self.move_boxes.get(widget)
             if move_box is None:
                 full_rect |= widget.rect_needed_in_scene()
-            
+
             else:
                 if move_box.hidding_state is BoxHidding.RESTORING:
                     continue
-                
+
                 full_rect |= widget.rect_needed_in_scene()
-        
+
         for widget in canvas.list_boxes():
             futur_rect |= widget.rect_needed_in_scene(futur=True)
-            
+
         if futur_rect is None or full_rect is None:
             return full_rect
-        
+
         rect = QRectF(full_rect)
         rect.setLeft(full_rect.left() * (1.0 - anim_ratio)
                      + futur_rect.left() * anim_ratio)
@@ -752,7 +752,7 @@ class PatchSceneMoth(QGraphicsScene):
                     + futur_rect.top() * anim_ratio)
         rect.setBottom(full_rect.bottom() * (1.0 - anim_ratio)
                        + futur_rect.bottom() * anim_ratio)
-        
+
         return rect
 
     def resize_the_scene(self, anim_ratio: Optional[float]=None):
@@ -760,7 +760,7 @@ class PatchSceneMoth(QGraphicsScene):
             return
 
         scene_rect = self.get_new_scene_rect(anim_ratio)
-        
+
         if not scene_rect.isNull():
             self.resizing_scene = True
             self.setSceneRect(scene_rect)
@@ -786,22 +786,22 @@ class PatchSceneMoth(QGraphicsScene):
     def set_cursor(self, cursor: QCursor):
         if self._view is None:
             return
-        
+
         self._view.viewport().setCursor(cursor)
 
     def unset_cursor(self):
         if self._view is None:
             return
-        
+
         self._view.viewport().unsetCursor()
 
     def zoom_ratio(self, percent: float, force=False):
         ratio = percent / 100.0
         transform = self._view.transform()
-        
+
         if not force and ratio == transform.m11():
             return
-        
+
         transform.reset()
         transform.scale(ratio, ratio)
         self._view.setTransform(transform)
@@ -817,23 +817,23 @@ class PatchSceneMoth(QGraphicsScene):
             return
 
         full_rect = QRectF()
-        
+
         for item in self.items():
             if isinstance(item, BoxWidget) and item.isVisible():
                 rect = item.sceneBoundingRect()
-                
+
                 if full_rect.isNull():
                     full_rect = rect
                     continue
-                
+
                 full_rect.setLeft(min(full_rect.left(), rect.left()))
                 full_rect.setRight(max(full_rect.right(), rect.right()))
                 full_rect.setTop(min(full_rect.top(), rect.top()))
                 full_rect.setBottom(max(full_rect.bottom(), rect.bottom()))
-                
+
         if full_rect.isNull():
             return
-        
+
         self._view.fitInView(full_rect, Qt.AspectRatioMode.KeepAspectRatio)
         self.fix_scale_factor()
         self.scale_changed.emit(self._view.transform().m11())
@@ -897,7 +897,7 @@ class PatchSceneMoth(QGraphicsScene):
         self.plugin_selected.emit(plugin_list)
 
     def _trigger_rubberband_scale(self):
-        # TODO, should enable an auto-zoom on 
+        # TODO, should enable an auto-zoom on
         # Ctrl+Right clic + drag (rubberband)
         self._scale_area = True
 
@@ -983,14 +983,14 @@ class PatchSceneMoth(QGraphicsScene):
     def update_grid_widget(self):
         if self._view.transforming:
             return
-        
+
         if self._grid_widget is not None:
             self._grid_widget.update_path()
 
     def update_grid_style(self):
         if self._grid_widget is not None:
             self.removeItem(self._grid_widget)
-        
+
         if options.grid_style is GridStyle.NONE:
             self._grid_widget = None
         else:
@@ -1015,7 +1015,7 @@ class PatchSceneMoth(QGraphicsScene):
         if event.button() == Qt.MouseButton.LeftButton and not canvas.menu_shown:
             # parse items under mouse to prevent CallbackAct.DOUBLE_CLICK
             # if mouse is on a box
-            
+
             has_box = False
             items = self.items(
                 event.scenePos(), Qt.ItemSelectionMode.ContainsItemShape,
@@ -1033,7 +1033,7 @@ class PatchSceneMoth(QGraphicsScene):
 
                 if not has_box:
                     has_box = isinstance(item, BoxWidget)
-            
+
             if not has_box:
                 canvas.cb.bg_double_click()
 
@@ -1062,7 +1062,7 @@ class PatchSceneMoth(QGraphicsScene):
             (event.button() == Qt.MouseButton.LeftButton
                 and not alt_or_meta_pressed)
             or (event.button() == Qt.MouseButton.RightButton and ctrl_pressed))
-        
+
         self._press_point = event.scenePos()
         self._mouse_rubberband = False
 
@@ -1103,7 +1103,7 @@ class PatchSceneMoth(QGraphicsScene):
         if self.flying_connectable is not None:
             self.flying_connectable.mouseMoveEvent(event)
             return
-        
+
         if self._mouse_down_init:
             self._mouse_down_init = False
             self._mouse_rubberband = False
@@ -1113,7 +1113,7 @@ class PatchSceneMoth(QGraphicsScene):
             else:
                 if event.buttons() != 0:
                     self._mouse_rubberband = True
-            
+
         if self._mouse_rubberband:
             event.accept()
             pos = event.scenePos()
@@ -1142,7 +1142,7 @@ class PatchSceneMoth(QGraphicsScene):
                                event.scenePos()])):
                 if isinstance(item, LineWidget):
                     item.trigger_disconnect()
-        
+
         QGraphicsScene.mouseMoveEvent(self, event)
 
     def mouseReleaseEvent(self, event):
@@ -1150,7 +1150,7 @@ class PatchSceneMoth(QGraphicsScene):
             QGraphicsScene.mouseReleaseEvent(self, event)
             canvas.set_aliasing_reason(AliasingReason.NAV_ON_BORDERS, False)
             return
-        
+
         if self._scale_area and not self._rubberband_selection:
             self._scale_area = False
             self.unset_cursor()
@@ -1228,7 +1228,7 @@ class PatchSceneMoth(QGraphicsScene):
         if canvas.is_line_mov:
             event.ignore()
             return
-        
+
         for item in self.items(event.scenePos()):
             if isinstance(item, (BoxWidget, ConnectableWidget)):
                 break

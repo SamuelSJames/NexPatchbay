@@ -17,7 +17,7 @@ _translate = QApplication.translate
 class SelectedBoxesMenu(QMenu):
     def __init__(self, parent):
         super().__init__(parent)
-        self.mng : 'PatchbayManager' = None # type:ignore 
+        self.mng : 'PatchbayManager' = None # type:ignore
         self._selected_boxes = dict[int, PortMode]()
 
         self.setTitle(_translate('sel_boxes_menu', 'Selected boxes'))
@@ -26,10 +26,10 @@ class SelectedBoxesMenu(QMenu):
 
     def set_patchbay_manager(self, mng: 'PatchbayManager'):
         self.mng = mng
-    
+
     def set_selected_boxes(self, selected_boxes: dict[int, PortMode]):
         self._selected_boxes = selected_boxes
-    
+
     def _build(self):
         self.action_new_white_view = self.addAction(
             _translate('sel_boxes_menu', "Put in a new exclusive view"))
@@ -49,15 +49,15 @@ class SelectedBoxesMenu(QMenu):
             QIcon.fromTheme('edit-select-invert'))
         self.action_invert_selection.triggered.connect(
             self._invert_boxes_selection)
-    
-    @Slot()    
+
+    @Slot()
     def _new_exclusive_view(self):
         with CancellableAction(self.mng, CancelOp.ALL_VIEWS) as a:
             sender_text: str = self.sender().text() # type:ignore
             a.name = sender_text
             patchcanvas.clear_selection()
             self.mng.new_view(exclusive_with=self._selected_boxes)
-        
+
     @Slot()
     def _hide_selected_boxes(self):
         with CancellableAction(self.mng, CancelOp.VIEW) as a:

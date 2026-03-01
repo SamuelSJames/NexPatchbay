@@ -22,29 +22,29 @@ if TYPE_CHECKING:
 _translate = QApplication.translate
 
 
-class CanvasOptionsDialog(QDialog):    
+class CanvasOptionsDialog(QDialog):
     def __init__(self, parent: QWidget, manager: 'PatchbayManager',
                  settings: Optional[QSettings] = None):
         QDialog.__init__(self, parent)
         self.ui = Ui_CanvasOptions()
         self.ui.setupUi(self)
-        
+
         self.mng = manager
-        
+
         box_layout_dict = {
             1.0: _translate('box_layout', 'Choose the smallest area'),
             1.1: _translate('box_layout', 'Prefer large boxes'),
             1.4: _translate('box_layout', 'Almost only large boxes'),
             2.0: _translate('box_layout', 'Force large boxes')
         }
-        
+
         grid_style_dict = {
             GridStyle.NONE: _translate('grid_style', 'None'),
             GridStyle.TECHNICAL_GRID: _translate('grid_style', 'Technical Grid'),
             GridStyle.GRID: _translate('grid_style', 'Grid'),
             GridStyle.CHESSBOARD: _translate('grid_style', 'Chessboard')
         }
-        
+
         for ratio, text in box_layout_dict.items():
             self.ui.comboBoxBoxesAutoLayout.addItem(text, ratio)
 
@@ -58,16 +58,16 @@ class CanvasOptionsDialog(QDialog):
         self.ui.pushButtonEditTheme.clicked.connect(self._edit_theme)
         self.ui.pushButtonDuplicateTheme.clicked.connect(self._duplicate_theme)
         self.ui.pushButtonPatchichiExport.clicked.connect(self._export_to_patchichi)
-        
+
         self._current_theme_ref = ''
         self._theme_list = list[ThemeData]()
-        
+
         # connect checkboxs and spinbox signals to patchbays signals
         self.ui.checkBoxA2J.stateChanged.connect(
             manager.sg.a2j_grouped_changed) # type:ignore
         self.ui.checkBoxAlsa.stateChanged.connect(
             manager.sg.alsa_midi_enabled_changed) # type:ignore
-        
+
         self.ui.checkBoxJackPrettyNames.stateChanged.connect(
             self._naming_changed)
         self.ui.checkBoxCustomNames.stateChanged.connect(
@@ -80,7 +80,7 @@ class CanvasOptionsDialog(QDialog):
             self._export_custom_names_to_jack)
         self.ui.pushButtonImportPrettyJack.clicked.connect(
             self._import_pretty_names_from_jack)
-        
+
         self.ui.checkBoxShadows.stateChanged.connect(
             manager.sg.group_shadows_changed) # type:ignore
         self.ui.comboBoxGridStyle.currentIndexChanged.connect(
@@ -109,21 +109,21 @@ class CanvasOptionsDialog(QDialog):
             self.mng.group_a2j_hw)
         self.ui.checkBoxAlsa.setChecked(
             self.mng.alsa_midi_enabled)
-        
+
         self.ui.checkBoxJackPrettyNames.setChecked(
             Naming.METADATA_PRETTY in self.mng.naming)
         self.ui.checkBoxCustomNames.setChecked(
             Naming.CUSTOM in self.mng.naming)
         self.ui.checkBoxGracefulNames.setChecked(
             Naming.GRACEFUL in self.mng.naming)
-        
+
         b = self.ui.checkBoxExportCustomNames
         if b.isEnabled():
             b.setChecked(
                 Naming.CUSTOM in self.mng.jack_export_naming)
-        
+
         options = patchcanvas.options
-        
+
         self.ui.checkBoxShadows.setChecked(
             options.show_shadows)
         self.ui.comboBoxGridStyle.setCurrentIndex(
@@ -144,9 +144,9 @@ class CanvasOptionsDialog(QDialog):
             options.cell_width)
         self.ui.spinBoxGridHeight.setValue(
             options.cell_height)
-        
+
         layout_ratio = options.box_grouped_auto_layout_ratio
-        
+
         if layout_ratio <= 1.0:
             box_index = 0
         elif layout_ratio <= 1.3:
@@ -155,7 +155,7 @@ class CanvasOptionsDialog(QDialog):
             box_index = 2
         else:
             box_index = 3
-            
+
         self.ui.comboBoxBoxesAutoLayout.setCurrentIndex(box_index)
 
     @Slot(int)
@@ -167,27 +167,27 @@ class CanvasOptionsDialog(QDialog):
             naming |= Naming.CUSTOM
         if self.ui.checkBoxGracefulNames.isChecked():
             naming |= Naming.GRACEFUL
-        
+
         self.mng.change_naming(naming)
 
     @Slot(bool)
     def _jack_export_naming_changed(self, checked: bool):
         jack_exp_naming = Naming.TRUE_NAME
         if self.ui.checkBoxExportCustomNames.isChecked():
-            jack_exp_naming |= Naming.CUSTOM 
-        
+            jack_exp_naming |= Naming.CUSTOM
+
         self.mng.change_jack_export_naming(jack_exp_naming)
 
     @Slot()
     def _export_custom_names_to_jack(self):
         self.mng.export_custom_names_to_jack()
-        
+
     @Slot()
     def _import_pretty_names_from_jack(self):
         self.mng.import_pretty_names_from_jack()
 
     def auto_export_pretty_names_changed(self, state: bool):
-        # option has been changed from the daemon itself 
+        # option has been changed from the daemon itself
         # (probably with ray_control)
         b = self.ui.checkBoxExportCustomNames
         if b.isEnabled():
@@ -216,37 +216,37 @@ class CanvasOptionsDialog(QDialog):
             Qt.ItemDataRole.UserRole)
         if current_theme_ref_id == self._current_theme_ref:
             return
-        
+
         for theme_data in self._theme_list:
             if theme_data.ref_id == current_theme_ref_id:
                 self.ui.pushButtonEditTheme.setEnabled(theme_data.editable)
                 break
 
         self.mng.sg.theme_changed.emit(current_theme_ref_id)
-        
-    def _duplicate_theme(self):        
+
+    def _duplicate_theme(self):
         new_theme_name, ok = QInputDialog.getText(
             self, _translate('patchbay_theme', 'New Theme Name'),
             _translate('patchbay_theme', 'Choose a name for the new theme :'))
-        
+
         if not new_theme_name or not ok:
             return
-        
+
         new_theme_name = new_theme_name.replace('/', '⁄')
 
         err = patchcanvas.copy_and_load_current_theme(new_theme_name)
-        
+
         if err:
             message = _translate(
                 'patchbay_theme', 'The copy of the theme directory failed')
-            
+
             QMessageBox.warning(
                 self, _translate('patchbay_theme', 'Copy failed !'), message)
 
     def _edit_theme(self):
         current_theme_ref_id = self.ui.comboBoxTheme.currentData(
             Qt.ItemDataRole.UserRole)
-        
+
         for theme_data in self._theme_list:
             if (theme_data.ref_id == current_theme_ref_id
                     and theme_data.editable):
@@ -262,10 +262,10 @@ class CanvasOptionsDialog(QDialog):
                 scenes_dir.mkdir()
             except:
                 pass
-        
+
         if not scenes_dir.is_dir():
             scenes_dir = Path.home()
-        
+
         ret, ok = QFileDialog.getSaveFileName(
             self,
             _translate(
@@ -276,7 +276,7 @@ class CanvasOptionsDialog(QDialog):
 
         if not ok:
             return
-        
+
         self.mng.export_to_patchichi_json(Path(ret))
 
     def set_theme_list(self, theme_list: list[ThemeData]):
@@ -311,7 +311,7 @@ class CanvasOptionsDialog(QDialog):
                     i, Qt.ItemDataRole.UserRole)
                 if ref_id == theme_ref:
                     self.ui.comboBoxTheme.setCurrentIndex(i)
-                    
+
                     # update the edit button enable state
                     for theme_data in self._theme_list:
                         if theme_data.ref_id == ref_id:
@@ -327,7 +327,7 @@ class CanvasOptionsDialog(QDialog):
         else:
             self.ui.checkBoxAlsa.setToolTip(
                 _translate(
-                    'alsa_midi', 
+                    'alsa_midi',
                     "ALSA python lib version is not present or too old.\n"
                     "Ensure to have python3-pyalsa >= 1.2.4"))
 
@@ -337,7 +337,7 @@ class CanvasOptionsDialog(QDialog):
 
     def _grid_width_changed(self, value: int):
         patchcanvas.change_grid_width(value)
-        
+
     def _grid_height_changed(self, value: int):
         patchcanvas.change_grid_height(value)
 

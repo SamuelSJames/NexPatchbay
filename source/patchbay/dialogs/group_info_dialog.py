@@ -16,18 +16,18 @@ class GroupInfoDialog(QDialog):
         self.ui = Ui_CanvasGroupInfo()
         self.ui.setupUi(self)
         self.group = group
-        
+
         self._fill_contents()
         self.ui.toolButtonRefresh.clicked.connect(self._fill_contents)
         self.ui.tableWidgetMetadatas.horizontalHeader().\
             setStretchLastSection(True)
         self.ui.tableWidgetMetadatas.cellChanged.connect(self._cell_changed)
         self._populating = False
-    
+
     def show(self):
         super().show()
         self.adjustSize()
-    
+
     def _fill_contents(self):
         if self.group.cnv_box_type in (BoxType.HARDWARE, BoxType.MONITOR):
             icon = QIcon()
@@ -47,7 +47,7 @@ class GroupInfoDialog(QDialog):
 
         self.ui.lineEditClientName.setText(self.group.name)
         self.ui.lineEditUuid.setText(str(self.group.uuid))
-        
+
         self.ui.lineEditCustomName.setText(self.group.custom_name)
         self.ui.lineEditGracefulName.setText(self.group.graceful_name)
         display_graceful = self.group.graceful_name != self.group.name
@@ -55,22 +55,22 @@ class GroupInfoDialog(QDialog):
                        self.ui.labelColonGracefulName,
                        self.ui.lineEditGracefulName):
             widget.setVisible(display_graceful)
-        
+
         mng = self.group.manager
-        
+
         # fill ALSA client id
         alsa_client_ids = set[str]()
-        
+
         for port in self.group.ports:
             if port.type is PortType.MIDI_ALSA:
                 alsa_client_ids.add(str(port.alsa_client_id))
-        
+
         self.ui.labelAlsaClientIdNum.setText(' '.join(alsa_client_ids))
         has_alsa = bool(alsa_client_ids)
         self.ui.labelAlsaClientId.setVisible(has_alsa)
         self.ui.labelColonAlsaClientId.setVisible(has_alsa)
         self.ui.labelAlsaClientIdNum.setVisible(has_alsa)
-        
+
         # fill JACK metadatas
         self._populating = True
 
@@ -79,8 +79,8 @@ class GroupInfoDialog(QDialog):
             if uuid_dict is not None:
                 self.ui.tableWidgetMetadatas.setRowCount(len(uuid_dict))
                 row = 0
-                
-                for key, value in uuid_dict.items():                    
+
+                for key, value in uuid_dict.items():
                     key_item = QTableWidgetItem(key)
                     value_item = QTableWidgetItem(value)
                     key_item.setData(Qt.ItemDataRole.UserRole, key)
@@ -88,11 +88,11 @@ class GroupInfoDialog(QDialog):
                     self.ui.tableWidgetMetadatas.setItem(row, 0, key_item)
                     self.ui.tableWidgetMetadatas.setItem(row, 1, value_item)
                     row += 1
-                
+
             self.ui.tableWidgetMetadatas.resizeColumnToContents(0)
-        
+
         self._populating = False
-        
+
         show_jack = bool(self.group.uuid)
         self.ui.labelJackUuid.setVisible(show_jack)
         self.ui.labelColonJackUuid.setVisible(show_jack)
@@ -101,7 +101,7 @@ class GroupInfoDialog(QDialog):
         self.ui.labelJackMetadatas.setVisible(show_jack)
         self.ui.tableWidgetMetadatas.setVisible(show_jack)
         self.ui.verticalWidget.setVisible(not show_jack)
-    
+
     def _cell_changed(self, row: int, column: int):
         if self._populating:
             return
@@ -109,6 +109,5 @@ class GroupInfoDialog(QDialog):
         item = self.ui.tableWidgetMetadatas.item(row, column)
         item.setText(item.data(Qt.ItemDataRole.UserRole))
 
-        
-        
-        
+
+

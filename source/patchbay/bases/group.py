@@ -20,7 +20,7 @@ from ..patchcanvas import patchcanvas
 
 if TYPE_CHECKING:
     from ..patchbay_manager import PatchbayManager
-    
+
 
 class Group:
     def __init__(self, manager: 'PatchbayManager', group_id: int,
@@ -43,10 +43,10 @@ class Group:
 
         self.cnv_box_type = BoxType.APPLICATION
         self.cnv_icon_name = ''
-        
+
         self.outs_ptv = PortTypesViewFlag.NONE
         'PortTypesViewFlag containing present output port types'
-        
+
         self.ins_ptv = PortTypesViewFlag.NONE
         'PortTypesViewFlag containing present input port types'
 
@@ -64,7 +64,7 @@ class Group:
 
         if not portgroup_id:
             return (0, 1)
-        
+
         for portgroup in self.portgroups:
             if portgroup.portgroup_id == portgroup_id:
                 i = 0
@@ -81,7 +81,7 @@ class Group:
     def add_to_canvas(self, gpos: Optional[GroupPos]=None):
         if self.manager.very_fast_operation:
             return
-        
+
         if self.in_canvas:
             return
 
@@ -89,21 +89,21 @@ class Group:
 
         if gpos is None:
             gpos = self.current_position
-        
+
         splitted = gpos.is_splitted()
 
         self.graceful_name = \
             self.graceful_name.replace('.0/', '/').replace('_', ' ')
-        
+
         self.cnv_box_type = box_type
         self.cnv_icon_name = icon_name
-        
+
         patchcanvas.add_group(
             self.group_id, self.cnv_name, splitted,
             box_type, icon_name, gpos)
 
         self.in_canvas = True
-            
+
         if self.has_gui:
             patchcanvas.set_optional_gui_state(
                 self.group_id, self.gui_visible)
@@ -115,12 +115,12 @@ class Group:
                 pretty = self.manager.jack_metadatas.pretty_name(self.uuid)
                 if pretty:
                     return pretty
-            
+
         if self.manager.naming & Naming.CUSTOM:
             custom = self.manager.custom_names.custom_group(self.name)
             if custom:
                 return custom
-            
+
         if self.manager.naming & Naming.GRACEFUL:
             return self.graceful_name
 
@@ -130,25 +130,25 @@ class Group:
     def mdata_pretty_name(self) -> str:
         if not self.uuid:
             return ''
-        
+
         return self.manager.jack_metadatas.pretty_name(self.uuid)
-    
+
     @property
     def mdata_icon(self) -> str:
         if not self.uuid:
             return ''
-        
+
         return self.manager.jack_metadatas.icon_name(self.uuid)
-    
+
     @property
     def custom_name(self) -> str:
         'The custom name, if it exists'
         return self.manager.custom_names.custom_group(self.name)
-    
+
     def remove_from_canvas(self):
         if self.manager.very_fast_operation:
             return
-        
+
         if not self.in_canvas:
             return
 
@@ -158,13 +158,13 @@ class Group:
     def redraw_in_canvas(self):
         if not self.in_canvas:
             return
-        
+
         patchcanvas.redraw_group(self.group_id)
 
     def rename_in_canvas(self):
         if not self.in_canvas:
             return
-        
+
         patchcanvas.rename_group(self.group_id, self.cnv_name)
 
     def _get_box_type_and_icon(self) -> tuple[BoxType, str]:
@@ -195,7 +195,7 @@ class Group:
             # this group is (probably) a pipewire Monitor group
             box_type = BoxType.MONITOR
             icon_name = 'monitor_playback'
-        
+
         if self.mdata_icon:
             icon_name = self.mdata_icon
 
@@ -210,16 +210,16 @@ class Group:
     def select_filtered_box(self, n_select=0):
         if not self.in_canvas:
             return
-        
+
         patchcanvas.select_filtered_group_box(self.group_id, n_select)
 
     def set_optional_gui_state(self, visible: bool):
         self.has_gui = True
         self.gui_visible = visible
-        
+
         if not self.in_canvas:
             return
-        
+
         patchcanvas.set_optional_gui_state(self.group_id, visible)
 
     def hide(self, port_mode: PortMode):
@@ -250,7 +250,7 @@ class Group:
         if (port_full_name.startswith('a2j:')
                 and not port.flags & JackPortFlag.IS_PHYSICAL):
             port_full_name = port_full_name.partition(':')[2]
-            
+
         elif port.type is PortType.MIDI_ALSA:
             port_full_name = ':'.join(port_full_name.split(':')[4:])
 
@@ -268,7 +268,7 @@ class Group:
                 self.save_current_position()
 
         self.ports.append(port)
-        
+
         port_type, port_sub_type = port.full_type
         if port_type is PortType.AUDIO_JACK:
             if port_sub_type is PortSubType.CV:
@@ -283,12 +283,12 @@ class Group:
             ptv_flag = PortTypesViewFlag.VIDEO
         else:
             ptv_flag = PortTypesViewFlag.NONE
-        
+
         if port.mode is PortMode.OUTPUT:
             self.outs_ptv |= ptv_flag
         else:
             self.ins_ptv |= ptv_flag
-            
+
         self.manager._ports_by_name[port.full_name] = port
         self.manager._ports_by_uuid[port.uuid] = port
 
@@ -368,14 +368,14 @@ class Group:
 
         if not self.in_canvas:
             return
-        
+
         patchcanvas.set_group_layout_mode(self.group_id, port_mode, layout_mode)
 
     def wrap_box(self, port_mode: PortMode, yesno: bool):
         true_port_mode = port_mode
         if port_mode is PortMode.NULL:
             true_port_mode = PortMode.BOTH
-        
+
         box_pos = self.current_position.boxes[true_port_mode]
         box_pos.set_wrapped(yesno)
         self.save_current_position()
@@ -388,9 +388,9 @@ class Group:
     def set_client_icon(self, icon_name: str, from_metadata=False):
         if not from_metadata:
             self.client_icon = icon_name
-        
+
         box_type, ex_icon_name = self._get_box_type_and_icon()
-        
+
         if self.in_canvas:
             patchcanvas.set_group_icon(
                 self.group_id, box_type, icon_name)
@@ -407,20 +407,20 @@ class Group:
 
             if self.name.startswith(client_name + '.'):
                 return client_name
-            
+
             name = self.name.partition('/')[0]
             if name == client_name:
                 return client_name
-            
+
             if name.startswith(client_name + '_'):
                 if name.replace(client_name + '_', '', 1).isdigit():
                     return client_name
-            
+
             if ' (' in name and name.endswith(')'):
                 name = name.partition(' (')[0]
                 if name == client_name:
                     return client_name
-                
+
                 if name.startswith(client_name + '_'):
                     if name.replace(client_name + '_', '', 1).isdigit():
                         return client_name
@@ -510,7 +510,7 @@ class Group:
         elif client_name in ('ardour', 'Ardour', 'Mixbus', 'mixbus'):
             if '/TriggerBox/' in display_name:
                 display_name = '▸ ' + display_name.replace('/TriggerBox/', '/', 1)
-            
+
             for pt in ('audio', 'midi'):
                 if display_name == f"physical_{pt}_input_monitor_enable":
                     display_name = "physical monitor"
@@ -535,22 +535,22 @@ class Group:
                     port.last_digit_to_add = '1'
                 else:
                     display_name += ' ' + num
-        
+
         elif client_name in ('Non-Mixer', 'Non-Mixer-XT'):
             display_name, num = split_end_digits(display_name)
             if num:
                 display_name = cut_end(display_name, '/in-', '/out-')
-                
+
                 if num == '1':
                     port.last_digit_to_add = '1'
                 else:
                     display_name += ' ' + num
-        
+
         elif client_name == 'jack_mixer':
             prefix, out, side = display_name.rpartition(' Out')
             if out and side in (' L', ' R', ''):
                 display_name = prefix + side
-                        
+
         elif client_name in ('SooperLooper', 'sooperlooper'):
             display_name, num = split_end_digits(display_name)
             if num:
@@ -824,16 +824,16 @@ class Group:
                         if (port in (conn.port_out, conn.port_in)
                                 and conn not in conn_list):
                             conn_list.append(conn)
-                
+
                 for connection in conn_list:
                     connection.remove_from_canvas()
-                
+
                 for portgroup in self.portgroups:
                     portgroup.remove_from_canvas()
 
                 for port in self.ports:
                     port.remove_from_canvas()
-            
+
             self.ports.sort()
 
             # search and remove existing portgroups with non consecutive ports
@@ -904,8 +904,8 @@ class Group:
 
                 for port_mode in gp_dict.keys():
                     pg_mem_list = gp_dict[port_mode]
-                    
-                    for portgroup_mem in pg_mem_list:        
+
+                    for portgroup_mem in pg_mem_list:
                         if not portgroup_mem.above_metadatas:
                             continue
 
@@ -948,7 +948,7 @@ class Group:
                                 'port_type': port.type,
                                 'port_mode': port.mode,
                                 'ports':[port]})
-            
+
             for pg_mdata in portgroups_mdata:
                 if len(pg_mdata['ports']) < 2:
                     continue
@@ -957,7 +957,7 @@ class Group:
                     self.group_id, pg_mdata['port_mode'], pg_mdata['ports'])
                 new_portgroup.mdata_portgroup = pg_mdata['pg_name']
                 self.portgroups.append(new_portgroup)
-            
+
             # add missing portgroups from portgroup memory
             for port_type in self.manager.portgroups_memory.keys():
                 ptype_dict = self.manager.portgroups_memory[port_type]
@@ -967,8 +967,8 @@ class Group:
 
                 for port_mode in gp_dict.keys():
                     pg_mem_list = gp_dict[port_mode]
-                    
-                    for portgroup_mem in pg_mem_list:        
+
+                    for portgroup_mem in pg_mem_list:
                         if portgroup_mem.above_metadatas:
                             continue
 
@@ -989,7 +989,7 @@ class Group:
 
                             elif founded_ports:
                                 break
-            
+
             if not self.manager.very_fast_operation:
                 # ok for re-adding all items to canvas
                 for port in self.ports:
@@ -997,20 +997,20 @@ class Group:
 
                 for portgroup in self.portgroups:
                     portgroup.add_to_canvas()
-            
+
                 for connection in conn_list:
                     connection.add_to_canvas()
-        
+
     def add_all_ports_to_canvas(self):
         for port in self.ports:
             port.add_to_canvas()
 
         for portgroup in self.portgroups:
             portgroup.add_to_canvas()
-            
+
     def remove_all_ports_from_canvas(self):
         for portgroup in self.portgroups:
             portgroup.remove_from_canvas()
-        
+
         for port in self.ports:
             port.remove_from_canvas()

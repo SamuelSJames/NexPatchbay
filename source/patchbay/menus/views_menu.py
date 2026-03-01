@@ -8,7 +8,7 @@ from ..cancel_mng import CancelOp, CancellableAction
 
 if TYPE_CHECKING:
     from patchbay_manager import PatchbayManager
-    
+
 
 _translate = QApplication.translate
 
@@ -21,12 +21,12 @@ class ViewsMenu(QMenu):
             _translate('views_menu', 'Views'))
         self.setIcon(QIcon.fromTheme('view-group'))
         self._build()
-    
+
     def _are_there_absents(self) -> bool:
         group_names = set[str]()
         for group in self.mng.groups:
             group_names.add(group.name)
-        
+
         if self.mng.views.get(self.mng.view_number) is None:
             return False
 
@@ -35,11 +35,11 @@ class ViewsMenu(QMenu):
             if gpos.group_name not in group_names:
                 return True
         return False
-    
+
     def _build(self):
         self.clear()
         view_keys = list[int]()
-        
+
         if self.mng is not None:
             view_keys = [k for k in self.mng.views.keys()]
 
@@ -47,7 +47,7 @@ class ViewsMenu(QMenu):
                 view_text = view_data.name
                 if not view_text:
                     view_text = _translate('views_menu', 'View n°%i') % index
-                
+
                 if 0 <= index <= 9:
                     view_text += f'\tAlt+{index}'
 
@@ -59,7 +59,7 @@ class ViewsMenu(QMenu):
                     view_act.setEnabled(False)
 
         self.addSeparator()
-        
+
         act_mv_view = self.addAction(
             _translate('views_menu', 'Rename'))
         act_mv_view.setIcon(QIcon.fromTheme('edit-rename'))
@@ -74,15 +74,15 @@ class ViewsMenu(QMenu):
             _translate('views_menu', 'Forget the positions of those absent'))
         act_clear_absents.setIcon(QIcon.fromTheme('edit-clear-all'))
         act_clear_absents.triggered.connect(self._clear_absents)
-        
+
         change_num_menu = QMenu(
             _translate('views_menu', 'Change view number to...'), self)
-        
+
         if view_keys:
             n_nums_in_change_menu = max(max(view_keys) + 2, 10)
         else:
             n_nums_in_change_menu = 10
-        
+
         for i in range(1, n_nums_in_change_menu):
             act_new_view_num = change_num_menu.addAction(str(i))
             if self.mng is not None:
@@ -112,11 +112,11 @@ class ViewsMenu(QMenu):
             _translate('views_menu', 'New view'))
         act_new_view.setIcon(QIcon.fromTheme('document-new'))
         act_new_view.triggered.connect(self._new_view)
-        
+
         if len(view_keys) <= 1:
             act_rm_view.setEnabled(False)
             act_remove_others.setEnabled(False)
-        
+
         if not self._are_there_absents():
             act_clear_absents.setEnabled(False)
 
@@ -135,16 +135,16 @@ class ViewsMenu(QMenu):
             view_name = ''
         else:
             view_name = view_data.name
-        
+
         if self.mng.main_win is None:
             return
-        
+
         new_name, ok = QInputDialog.getText(
             self.mng.main_win,
             _translate('views_menu', 'Rename view'),
             _translate('views_menu', 'New view name :'),
             text=view_name)
-        
+
         if ok:
             with CancellableAction(self.mng, CancelOp.ALL_VIEWS_NO_POS) as a:
                 a.name = _translate('undo', 'View %i renamed to "%s"') % (
@@ -187,7 +187,7 @@ class ViewsMenu(QMenu):
         with CancellableAction(self.mng, CancelOp.ALL_VIEWS) as a:
             a.name = sender_text
             self.mng.remove_view(self.mng.view_number)
-    
+
     def showEvent(self, event) -> None:
         self._build()
         super().showEvent(event)

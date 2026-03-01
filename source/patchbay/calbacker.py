@@ -27,14 +27,14 @@ class Callbacker(ProtoCallbacker):
     '''manage actions coming from patchcanvas.
     Each protected method implements the action to run
     when the action happens.'''
-    
+
     def __init__(self, manager: 'PatchbayManager'):
         self.mng = manager
         self.patchcanvas = patchcanvas
-    
+
     def group_info(self, group_id: int):
         ...
-    
+
     def group_rename(
             self, group_id: int, pretty_name: str, save_in_jack: bool):
         ...
@@ -50,7 +50,7 @@ class Callbacker(ProtoCallbacker):
         if group is not None:
             group.current_position.set_splitted(True)
             group.save_current_position()
-    
+
     def group_joined(self, group_id: int):
         group = self.mng.get_group_from_id(group_id)
         if group is not None:
@@ -73,7 +73,7 @@ class Callbacker(ProtoCallbacker):
                 group = self.mng.get_group_from_id(group_id)
                 if group is None:
                     continue
-                
+
                 if len(pos_tuples) == 1:
                     a.name = _translate('undo', 'Move %s') \
                         % group.cnv_name
@@ -91,7 +91,7 @@ class Callbacker(ProtoCallbacker):
             return
 
         group.current_position.boxes[port_mode].eat(box_pos)
-        
+
         group.save_current_position()
 
     def group_wrap(
@@ -106,21 +106,21 @@ class Callbacker(ProtoCallbacker):
                     a.name = _translate('undo', 'Unwrap "%s"') \
                         % group.cnv_name
                 group.wrap_box(splitted_mode, yesno)
-    
+
     def group_layout_change(self, group_id: int, port_mode: PortMode,
                             layout_mode: BoxLayoutMode):
         group = self.mng.get_group_from_id(group_id)
         if group is not None:
             group.set_layout_mode(port_mode, layout_mode)
-    
+
     def group_selected(self, group_id: int, port_mode: PortMode):
         ...
-    
+
     def group_hide_box(self, group_id: int, port_mode: PortMode):
         group = self.mng.get_group_from_id(group_id)
         if group is None:
             return
-        
+
         self.mng.set_group_hidden_sides(group_id, port_mode)
 
     def group_menu_call(self, group_id: int, port_mode: PortMode):
@@ -128,7 +128,7 @@ class Callbacker(ProtoCallbacker):
         if group is not None:
             menu = GroupMenu(self.mng, group, port_mode)
             menu.exec(QCursor().pos())
-    
+
     def portgroup_add(self, group_id: int, port_mode: PortMode,
                        port_type: PortType, port_ids: tuple[int]):
         port_list = list[Port]()
@@ -150,13 +150,13 @@ class Callbacker(ProtoCallbacker):
         pg_mem.group_name = group.name
         pg_mem.port_type = port_type
         pg_mem.port_mode = port_mode
-        
+
         pg_mem.above_metadatas = above_metadatas
         pg_mem.port_names = [p.short_name for p in port_list]
 
         self.mng.add_portgroup_memory(pg_mem)
         self.mng.save_portgroup_memory(pg_mem)
-    
+
     def portgroup_remove(self, group_id: int, portgroup_id: int):
         group = self.mng.get_group_from_id(group_id)
         if group is None:
@@ -190,7 +190,7 @@ class Callbacker(ProtoCallbacker):
     def port_rename(self, group_id: int, port_id: int,
                      pretty_name: str, save_in_jack: bool):
         ...
-    
+
     def ports_connect(self, group_out_id: int, port_out_id: int,
                        group_in_id: int, port_in_id: int):
         ...
@@ -215,7 +215,7 @@ class Callbacker(ProtoCallbacker):
         for group in self.mng.groups:
             if group.group_id != group_id:
                 continue
-            
+
             for portgroup in group.portgroups:
                 if portgroup.portgroup_id == portgrp_id:
                     break
@@ -233,22 +233,22 @@ class Callbacker(ProtoCallbacker):
 
     def plugin_clone(self, plugin_id: int):
         ...
-        
+
     def plugin_edit(self, plugin_id: int):
         ...
-        
+
     def plugin_rename(self, plugin_id: int):
         ...
-        
+
     def plugin_replace(self, plugin_id: int):
         ...
-        
+
     def plugin_remove(self, plugin_id: int):
         ...
-        
+
     def plugin_show_ui(self, plugin_id: int):
         ...
-        
+
     def inline_display(self):
         ...
 
@@ -259,13 +259,13 @@ class Callbacker(ProtoCallbacker):
             self.mng.canvas_menu.remember_scene_pos(scene_x, scene_y)
             self.mng.canvas_menu.set_selected_boxes(selected_boxes)
             self.mng.canvas_menu.exec(QPoint(x, y))
-    
+
     def bg_double_click(self):
         self.mng.sg.full_screen_toggle_wanted.emit()
-    
+
     def client_show_gui(self, group_id: int, visible: int):
         ...
-                    
+
     def theme_changed(self, theme_ref: str):
         if self.mng.options_dialog is not None:
             self.mng.options_dialog.set_theme(theme_ref)

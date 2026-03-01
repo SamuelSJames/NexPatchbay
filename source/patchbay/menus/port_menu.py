@@ -39,7 +39,7 @@ _translate = QApplication.translate
 
 def theme_css(theme: StyleAttributer) -> str:
     pen = theme.fill_pen
-    
+
     return (
         "background-color: "
         f"{theme.background_color.name(QColor.NameFormat.HexArgb)};"
@@ -54,7 +54,7 @@ class ConnState(IntEnum):
     NONE = 0
     IRREGULAR = 1
     REGULAR = 2
-    
+
     def to_qt_check_state(self):
         if self is ConnState.NONE:
             return Qt.CheckState.Unchecked
@@ -68,36 +68,36 @@ class ExistingConns(IntFlag):
     VISIBLE = 0x1
     HIDDEN = 0x2
 
-    
+
 class PortCheckBox(QCheckBox):
     def __init__(self, p_object:  Union[Port, Portgroup],
                  parent: 'CheckFrame', pg_pos=0, pg_len=1):
         QCheckBox.__init__(self, "", parent)
         self.setTristate(True)
-        
+
         port_height = int(
             canvas.theme.port_height * options.default_zoom / 100.0 + 2)
         self.setMinimumHeight(port_height)
         self.setMinimumWidth(port_height)
-        
+
         self.setSizePolicy(QSizePolicy.Policy.Fixed, QSizePolicy.Policy.Fixed)
-        
+
         self._po = p_object
         self._parent = parent
         self._pg_pos = pg_pos
         self._pg_len = pg_len
         self.set_theme()
 
-    def set_theme(self):        
+    def set_theme(self):
         po = self._po
-        
+
         full_theme = canvas.theme
         theme = full_theme.port
         line_theme = full_theme.line
-        
+
         if isinstance(po, Portgroup):
             theme = full_theme.portgroup
-            
+
         if po.full_type[0] is PortType.AUDIO_JACK:
             theme = theme.audio
             line_theme = line_theme.audio
@@ -115,16 +115,16 @@ class PortCheckBox(QCheckBox):
         h_text_color = theme.selected.text_color.name(QColor.NameFormat.HexArgb)
         ind_bg = full_theme.scene_background_color.name(QColor.NameFormat.HexArgb)
         checked_bg = line_theme.selected.background_color.name(QColor.NameFormat.HexArgb)
-        
+
         border_width = theme.fill_pen.widthF()
-        
+
         TOP, RIGHT, BOTTOM, LEFT = 0, 1, 2, 3
         SIDES = ['top', 'right', 'bottom', 'left']
         margin_texts = [f"margin-{side}: 2px" for side in SIDES]
         border_texts = [f"border-{side}: {border_width}px solid {border_color}"
                         for side in SIDES]
         radius_text = ""
-        
+
         if isinstance(po, Port) and po.portgroup_id:
             if self._pg_pos == 0:
                 margin_texts.pop(BOTTOM)
@@ -132,7 +132,7 @@ class PortCheckBox(QCheckBox):
             elif self._pg_pos + 1 == self._pg_len:
                 margin_texts.pop(TOP)
                 radius_text = "border-top-left-radius: 0px; border-top-right-radius: 0px"
-                
+
             if self._pg_pos != 0:
                 border_texts[TOP] = f"border-top: 0px solid transparent"
 
@@ -141,7 +141,7 @@ class PortCheckBox(QCheckBox):
                        f"border-radius: 3px; {radius_text};}}"
             f"QCheckBox:hover{{background-color: none;color: {h_text_color}}}"
         )
-        # # this stylesheet code is commented because the checkbox was not clear 
+        # # this stylesheet code is commented because the checkbox was not clear
         # # with some Qt theme (fusion, kvantum).
         # # seems impossible to have a coherent and readable style
         # # because change indicator size seems to not be applied when box is checked
@@ -176,15 +176,15 @@ class PortCheckBox(QCheckBox):
         bg = QColor(canvas.theme.scene_background_color)
         bg.setAlphaF(1.0)
         painter.setBrush(QBrush(bg))
-        
-        rect = event.rect().adjusted(2, 2, -2, -2)        
+
+        rect = event.rect().adjusted(2, 2, -2, -2)
         painter.drawRoundedRect(rect, 2.0, 2.0)
-        
+
         line_color = self._line_theme.background_color
         painter.setBrush(QBrush(line_color))
         painter.setPen(QPen(Qt.PenStyle.NoPen))
         circle_rect = rect.adjusted(3, 3, -3, -3)
-        
+
         if self.checkState() == 2:
             circle_rect = rect.adjusted(3, 3, -3, -3)
             painter.drawEllipse(circle_rect)
@@ -203,10 +203,10 @@ class CheckFrame(QFrame):
         port_height = int(canvas.theme.port_height * options.default_zoom / 100.0) + 2
         self.setMinimumHeight(port_height)
         self.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Fixed)
-        
+
         self._p_object = p_object
         self._parent = parent
-        
+
         self._check_box = PortCheckBox(p_object, self, pg_pos, pg_len)
         self._label_left = QLabel(port_name)
         self._layout = QHBoxLayout(self)
@@ -222,7 +222,7 @@ class CheckFrame(QFrame):
         if port_name_end:
             self._label_right = QLabel(port_name_end)
             self._layout.addWidget(self._label_right)
-        
+
         self._pg_pos = pg_pos
         self._pg_len = pg_len
         self._set_theme()
@@ -235,29 +235,29 @@ class CheckFrame(QFrame):
 
         if isinstance(po, Portgroup):
             theme = full_theme.portgroup
-        
+
         if po.full_type[0] is PortType.AUDIO_JACK:
             theme = theme.cv if po.full_type[1] is PortSubType.CV else theme.audio
-            
+
         elif po.full_type[0] is PortType.MIDI_JACK:
             theme = theme.midi
-            
+
         elif po.full_type[0] is PortType.MIDI_ALSA:
             theme = theme.alsa
 
         self._theme = theme
 
         text_color = theme.text_color.name()
-        border_color = theme.fill_pen.color().name()        
+        border_color = theme.fill_pen.color().name()
         border_width = theme.fill_pen.widthF()
-        
+
         TOP, RIGHT, BOTTOM, LEFT = 0, 1, 2, 3
         SIDES = ['top', 'right', 'bottom', 'left']
         margin_texts = [f"margin-{side}: 2px" for side in SIDES]
         border_texts = [f"border-{side}: {border_width}px solid {border_color}"
                         for side in SIDES]
         radius_text = ""
-        
+
         if isinstance(po, Port) and po.portgroup_id:
             if self._pg_pos == 0:
                 margin_texts.pop(BOTTOM)
@@ -267,7 +267,7 @@ class CheckFrame(QFrame):
                 margin_texts.pop(TOP)
                 radius_text = ("border-top-left-radius: 0px; "
                                "border-top-right-radius: 0px")
-                
+
             if self._pg_pos != 0:
                 border_texts[TOP] = f"border-top: 0px solid transparent"
 
@@ -280,11 +280,11 @@ class CheckFrame(QFrame):
             f"{borders_text}; border-radius: 3px; {radius_text};"
             f"{margins_text}; padding-right: 0px}}"
             f"CheckFrame:focus{{{theme_css(theme.selected)}}};")
-        
+
         self._label_left.setFont(theme.font)
         self._label_left.setStyleSheet(
             f"QLabel{{color: {text_color}}}")
-        
+
         if self._label_right is not None:
             port_theme = full_theme.port
             port_type = po.type
@@ -304,25 +304,25 @@ class CheckFrame(QFrame):
 
     def connection_asked_from_box(self, po: Union[Port, Portgroup], yesno: bool):
         self._parent.connection_asked_from_box(self._p_object, yesno)
-    
+
     def mousePressEvent(self, event):
         self._check_box.nextCheckState()
-        
+
     def keyPressEvent(self, event: QKeyEvent):
         if event.key() in (Qt.Key.Key_Space, Qt.Key.Key_Return):
             self._check_box.nextCheckState()
             return
         QFrame.keyPressEvent(self, event)
-        
+
     def enterEvent(self, event):
         super().enterEvent(event)
         self.setFocus()
-        
+
     def focusInEvent(self, event: QFocusEvent):
         super().focusInEvent(event)
         text_color = self._theme.selected.text_color.name()
         self._label_left.setStyleSheet(f"QLabel{{color: {text_color}}}")
-        
+
     def focusOutEvent(self, event: QFocusEvent):
         super().focusOutEvent(event)
         text_color = self._theme.text_color.name()
@@ -338,10 +338,10 @@ class DangerousMenu(QMenu):
         else:
             dangerous_name = _translate(
                 'patchbay', 'CV | DANGEROUS !!!')
-        
+
         self.setTitle(dangerous_name)
         self.setIcon(QIcon.fromTheme('emblem-warning'))
-        
+
     def parent(self) -> 'ConnectMenu':
         return super().parent() # type:ignore
 
@@ -350,20 +350,20 @@ class GroupConnectMenu(QMenu):
     def __init__(self, group: Group, po: Port | Portgroup,
                  parent: 'ConnectMenu|DangerousMenu'):
         self._group = group
-        short_group_name = group.cnv_name        
+        short_group_name = group.cnv_name
         if len(short_group_name) > 15 and '/' in short_group_name:
             short_group_name = short_group_name.partition('/')[2]
 
         QMenu.__init__(self, short_group_name, parent)
         self.hovered.connect(self._mouse_hover_menu)
         self.aboutToShow.connect(self._about_to_show)
-        
+
         if isinstance(parent, DangerousMenu):
             self._connect_menu = parent.parent()
         else:
             self._connect_menu = parent
-        
-        theme = canvas.theme.box        
+
+        theme = canvas.theme.box
         if group.cnv_box_type is BoxType.CLIENT:
             theme = theme.client
         elif group.cnv_box_type is BoxType.HARDWARE:
@@ -371,7 +371,7 @@ class GroupConnectMenu(QMenu):
 
         bg_color = theme.background_color.name(QColor.NameFormat.HexArgb)
         border_color = theme.fill_pen.color().name(QColor.NameFormat.HexArgb)
-        
+
         self.setStyleSheet(
             "QMenu{"
                 f"background-color:{bg_color}; "
@@ -380,14 +380,14 @@ class GroupConnectMenu(QMenu):
             "}")
         self.setMinimumWidth(70)
         self.setMinimumHeight(50)
-        
+
         self._check_frame_templates = list[tuple]()
         self._elements_added = False
 
     def _mouse_hover_menu(self, action: QWidgetAction):
         # for better use with keyboard
         action.defaultWidget().setFocus()
-    
+
     def _about_to_show(self):
         self.setMinimumWidth(self._connect_menu.group_min_width)
 
@@ -403,7 +403,7 @@ class GroupConnectMenu(QMenu):
             self._connect_menu._patch_may_have_change()
 
         self._connect_menu.set_group_min_width(self.sizeHint().width())
-    
+
     def prepare_check_frame(self, *args):
         self._check_frame_templates.append(args)
 
@@ -416,31 +416,31 @@ class AbstractConnectionsMenu(QMenu):
 
         self._mng = mng
         self._po = po
-        
+
         self._check_frames = dict[Union[Port, Portgroup], CheckFrame]()
         self.group_min_width = 50
-    
+
     def exec(self, start_pos: QPoint) -> QAction:
         action = super().exec(start_pos)
         if action is None:
             canvas.menu_click_pos = QCursor().pos()
         return action
-    
+
     def _display_name(self, port: Port) -> str:
         if port.full_type == (PortType.AUDIO_JACK, PortSubType.CV):
             return f"CV | {port.cnv_name}"
         return port.cnv_name
-    
+
     def _ports(self, po: Union[Port, Portgroup, None]=None) -> list[Port]:
         if po is not None:
             if isinstance(po, Portgroup):
                 return list(po.ports)
             return [po]
-        
+
         if isinstance(self._po, Portgroup):
             return list(self._po.ports)
         return [self._po]
-    
+
     def _port_mode(self) -> PortMode:
         if isinstance(self._po, Portgroup):
             return self._po.port_mode
@@ -454,7 +454,7 @@ class AbstractConnectionsMenu(QMenu):
 
         has_irregular = False
         missing_regulars = False
-        
+
         for i, port_out in enumerate(out_ports):
             for j, port_in in enumerate(in_ports):
                 regular = (i % len(in_ports) == j
@@ -478,7 +478,7 @@ class AbstractConnectionsMenu(QMenu):
         out_ports, in_ports = self._ports(), self._ports(po)
         if self._port_mode() is PortMode.INPUT:
             out_ports, in_ports = in_ports, out_ports
-            
+
         conns = [c for c in self._mng.connections
                     if c.port_out in out_ports
                     and c.port_in in in_ports]
@@ -502,7 +502,7 @@ class AbstractConnectionsMenu(QMenu):
                             canvas.cb.ports_disconnect(
                                 conn.connection_id)
                             break
-    
+
     def _patch_may_have_change(self):
         if self._port_mode() is PortMode.OUTPUT:
             conns = [c for c in self._mng.connections
@@ -514,7 +514,7 @@ class AbstractConnectionsMenu(QMenu):
                     self._get_connection_status(
                         [c for c in conns if c.port_in in in_ports],
                          self._ports(), in_ports))
-                
+
         else:
             conns = [c for c in self._mng.connections
                      if c.port_in in self._ports()]
@@ -523,7 +523,7 @@ class AbstractConnectionsMenu(QMenu):
                 out_ports = self._ports(po)
                 check_frame.set_check_state(
                     self._get_connection_status(
-                        [c for c in conns if c.port_out in out_ports], 
+                        [c for c in conns if c.port_out in out_ports],
                         out_ports, self._ports()))
 
     def set_group_min_width(self, value: int):
@@ -538,7 +538,7 @@ class ConnectMenu(AbstractConnectionsMenu):
         dark = '-dark' if is_dark_theme(self) else ''
         self.setIcon(
             QIcon(QPixmap(':scalable/breeze%s/lines-connector' % dark)))
-        
+
         self._gp_menus = list[GroupConnectMenu]()
 
         has_dangerous = self._fill_all_ports()
@@ -546,43 +546,43 @@ class ConnectMenu(AbstractConnectionsMenu):
             self._fill_all_ports(dangerous=True)
 
         self._patch_may_have_change()
-    
+
     def _is_connection_dangerous(self, port: Port) -> bool:
         t_type, t_subtype = self._po.full_type
         p_type, p_subtype = port.full_type
-        
+
         if t_type is not PortType.AUDIO_JACK:
             return False
-        
+
         if t_subtype is p_subtype:
             return False
-        
+
         if t_subtype is PortSubType.CV:
             return self._port_mode() is PortMode.OUTPUT
-        
+
         if p_subtype is PortSubType.CV:
             return port.mode is PortMode.OUTPUT
-        
+
         return False
-    
+
     def _fill_all_ports(self, dangerous=False) -> bool:
         main_menu = self
         if dangerous:
             main_menu = DangerousMenu(self, self._po)
-        
+
         has_dangerous_ports = False
 
         for group in self._mng.groups:
             gp_menu: Optional[GroupConnectMenu] = None
             last_portgrp_id = 0
-            
+
             for port in group.ports:
                 if (port.type is self._po.type
                         and port.mode is self._port_mode().opposite()):
                     if self._is_connection_dangerous(port) != dangerous:
                         has_dangerous_ports = True
                         continue
-                    
+
                     if gp_menu is None:
                         gp_menu = GroupConnectMenu(group, self._po, main_menu)
                         gp_menu.setIcon(
@@ -603,21 +603,21 @@ class ConnectMenu(AbstractConnectionsMenu):
                                 end_name = '/'.join(
                                     [p.cnv_name.replace(portgrp_name, '', 1)
                                      for p in portgroup.ports])
-                                
+
                                 gp_menu.prepare_check_frame(
                                     portgroup, portgrp_name, end_name, self)
                                 break
                         else:
                             continue
-                        
+
                         last_portgrp_id = port.portgroup_id
-                    
+
                     elif isinstance(self._po, Port) and port.portgroup_id:
                         pg_pos, pg_len = group.port_pg_pos(port.port_id)
                         gp_menu.prepare_check_frame(
                             port, self._display_name(port),
                             '', self, pg_pos, pg_len)
-               
+
                     else:
                         gp_menu.prepare_check_frame(
                             port, self._display_name(port), '', self)
@@ -632,7 +632,7 @@ class ConnectMenu(AbstractConnectionsMenu):
         return has_dangerous_ports
 
     def leaveEvent(self, event: QMouseEvent):
-        # prevent to close the menu accidentaly when the mouse 
+        # prevent to close the menu accidentaly when the mouse
         # leaves the menu area
         event.ignore()
 
@@ -648,13 +648,13 @@ class DisconnectMenu(AbstractConnectionsMenu):
         dark = '-dark' if is_dark_theme(self) else ''
         self.setIcon(
             QIcon(QPixmap(':scalable/breeze%s/lines-disconnector' % dark)))
-        
+
         self.setSeparatorsCollapsible(False)
 
         self.disco_all_act = QAction(_translate('patchbay', 'Disconnect All'))
         self._fill_all_ports()
         self._patch_may_have_change()
-        
+
     def _fill_all_ports(self):
         if self._port_mode() is PortMode.OUTPUT:
             conn_ports = [c.port_in for c in self._mng.connections
@@ -662,13 +662,13 @@ class DisconnectMenu(AbstractConnectionsMenu):
         else:
             conn_ports = [c.port_out for c in self._mng.connections
                           if c.port_in in self._ports()]
-        
+
         skip_separator = True
-        
+
         for group in self._mng.groups:
             group_section_exists = False
             last_portgrp_id = 0
-            
+
             for port in group.ports:
                 if port not in conn_ports:
                     continue
@@ -678,7 +678,7 @@ class DisconnectMenu(AbstractConnectionsMenu):
                         group.cnv_box_type, group.cnv_icon_name,
                         self._port_mode().opposite(),
                         dark=is_dark_theme(self))
-                    
+
                     widget = QFrame()
                     widget.layout = QHBoxLayout(widget) # type:ignore
                     widget.layout.setSpacing(4)
@@ -692,19 +692,19 @@ class DisconnectMenu(AbstractConnectionsMenu):
                     spacer = QSpacerItem(2, 2, QSizePolicy.Policy.Expanding,
                                          QSizePolicy.Policy.Minimum)
                     widget.layout.addSpacerItem(spacer)
-                    
+
                     action = QWidgetAction(self)
                     action.setDefaultWidget(widget)
                     action.setSeparator(True)
-                    
+
                     # add separator if it is not the fisrt group
                     if not skip_separator:
                         self.addSeparator()
                     skip_separator = False
-                    
+
                     self.addAction(action)
                     group_section_exists = True
-                
+
                 if isinstance(self._po, Portgroup) and port.portgroup_id:
                     if port.portgroup_id == last_portgrp_id:
                         continue
@@ -716,16 +716,16 @@ class DisconnectMenu(AbstractConnectionsMenu):
                             end_name = '/'.join(
                                 [p.cnv_name.replace(portgrp_name, '', 1)
                                     for p in portgroup.ports])
-                            
+
                             check_frame = CheckFrame(
                                 portgroup, portgrp_name, end_name, self)
                             self._check_frames[portgroup] = check_frame
                             break
                     else:
                         continue
-                    
+
                     last_portgrp_id = port.portgroup_id
-                
+
                 else:
                     check_frame = CheckFrame(
                         port, self._display_name(port),'', self)
@@ -734,7 +734,7 @@ class DisconnectMenu(AbstractConnectionsMenu):
                 po_action = QWidgetAction(self)
                 po_action.setDefaultWidget(check_frame)
                 self.addAction(po_action)
-        
+
         if len(self._check_frames) >= 2:
             self.addSeparator()
             self.addAction(self.disco_all_act)
@@ -745,15 +745,15 @@ class DisconnectMenu(AbstractConnectionsMenu):
             return
 
         action.defaultWidget().setFocus()
-    
+
     def connection_asked_from_box(self, po: Union[Port, Portgroup], yesno: bool):
         super().connection_asked_from_box(po, yesno)
         self._one_frame_checked = True
-        
+
         if len(self._check_frames) < 2:
             parent: QMenu = self.parent() # type:ignore
             parent.close()
-    
+
     def has_connections(self) -> bool:
         return bool(self._check_frames)
 
@@ -773,35 +773,35 @@ class PoMenu(AbstractConnectionsMenu):
     def __init__(self, mng: 'PatchbayManager', po: Union[Port, Portgroup]):
         AbstractConnectionsMenu.__init__(self, mng, po)
         self.conn_menu = ConnectMenu(mng, po)
-        self.disconn_menu = DisconnectMenu(mng, po, self)   
-        
+        self.disconn_menu = DisconnectMenu(mng, po, self)
+
         dark = '-dark' if is_dark_theme(self) else ''
         disconn_icon = QIcon(
             QPixmap(':scalable/breeze%s/lines-disconnector' % dark))
         self.disconn_menu.setIcon(disconn_icon)
-        
+
         self.addMenu(self.conn_menu)
         if self.disconn_menu.has_connections():
             self.addMenu(self.disconn_menu)
-        
+
         disco_all_act = self.addAction(
             _translate('patchbay', 'Disconnect All'))
         disco_all_act.setIcon(disconn_icon)
-        
+
         existing_conns = self._get_existing_conns_flag()
         disco_all_act.setEnabled(
             bool(existing_conns & ExistingConns.VISIBLE))
         if existing_conns & ExistingConns.HIDDEN:
             disco_all_act.setText(
                 _translate('patchbay', 'Disconnect All (visible)'))
-        
+
         disco_all_act.triggered.connect(self._disconnect_all_visible)
         self.disconn_menu.disco_all_act.triggered.connect(self._disconnect_all)
 
         # Add clipboard menu
         self.clipboard_menu = QMenu(_translate('patchbay', 'Clipboard'), self)
         self.clipboard_menu.setIcon(QIcon.fromTheme('edit-paste'))
-        
+
         cb_cut_act = self.clipboard_menu.addAction(
             _translate('patchbay', 'Cut connections'))
         cb_copy_act = self.clipboard_menu.addAction(
@@ -813,22 +813,22 @@ class PoMenu(AbstractConnectionsMenu):
         cb_cut_act.setIcon(QIcon.fromTheme('edit-cut'))
         cb_copy_act.setIcon(QIcon.fromTheme('edit-copy'))
         cb_paste_act.setIcon(QIcon.fromTheme('edit-paste'))
-        
+
         cb_cut_act.triggered.connect(self._cb_cut)
         cb_copy_act.triggered.connect(self._cb_copy)
         cb_paste_act.triggered.connect(self._cb_paste)
-        
+
         if not existing_conns & ExistingConns.VISIBLE:
             cb_cut_act.setEnabled(False)
             cb_copy_act.setEnabled(False)
 
         if self._mng.connections_clipboard.is_compatible(self._ports()):
             self.clipboard_menu.addAction(cb_paste_act)
-        
+
         self.addMenu(self.clipboard_menu)
-        
+
         self.addSeparator()
-        
+
         # Add mono <-> stereo tools
         if self._po.full_type == (PortType.AUDIO_JACK, PortSubType.REGULAR):
             if isinstance(self._po, Portgroup):
@@ -837,25 +837,25 @@ class PoMenu(AbstractConnectionsMenu):
                 self.split_to_monos_act.triggered.connect(
                     self._split_to_monos)
                 self.addAction(self.split_to_monos_act)
-            
+
             elif isinstance(self._po, Port) and not self._po.portgroup_id:
                 set_as_stereo_menu = QMenu(
                     _translate('patchbay', 'Set as stereo with...'),
                     self)
-                
+
                 group = self._po.group
-                    
+
                 previous_port: Optional[Port] = None
                 next_port: Optional[Port] = None
                 port_found = False
-                
+
                 for port in group.ports:
                     if port.full_type != self._po.full_type:
                         continue
-                    
+
                     if port.mode is not self._po.mode:
                         continue
-                    
+
                     if not port_found:
                         if port is self._po:
                             port_found = True
@@ -867,35 +867,35 @@ class PoMenu(AbstractConnectionsMenu):
                         if not port.portgroup_id:
                             next_port = port
                         break
-                
+
                 self.mono_ports_acts = list[QAction]()
-                
+
                 for mono_port in (previous_port, next_port):
                     if mono_port is None:
                         continue
-                    
+
                     act = QAction(mono_port.cnv_name, set_as_stereo_menu)
                     act.setData(mono_port)
                     act.triggered.connect(self._set_as_stereo_with)
                     self.mono_ports_acts.append(act)
                     set_as_stereo_menu.addAction(act)
-                    
+
                 if previous_port or next_port:
                     self.addMenu(set_as_stereo_menu)
-        
+
         # add Rename
         # if isinstance(self._po, Port):
         port_rename_act = self.addAction(_translate('patchbay', 'Rename'))
         port_rename_act.setIcon(QIcon.fromTheme('edit-rename'))
         port_rename_act.triggered.connect(self._rename)
-        
+
         # add info dialog command
         if isinstance(self._po, Port):
             port_info_act = self.addAction(
                 _translate('patchbay', "Get &Info"))
-            port_info_act.setIcon(QIcon.fromTheme('dialog-information'))            
+            port_info_act.setIcon(QIcon.fromTheme('dialog-information'))
             port_info_act.triggered.connect(self._display_port_infos)
-    
+
     def _get_existing_conns_flag(self) -> ExistingConns:
         existing_conns = ExistingConns.NONE
 
@@ -906,9 +906,9 @@ class PoMenu(AbstractConnectionsMenu):
                         existing_conns |= ExistingConns.VISIBLE
                     else:
                         existing_conns |= ExistingConns.HIDDEN
-                        
+
             return existing_conns
-        
+
         if self._port_mode() is PortMode.INPUT:
             for conn in self._mng.connections:
                 if conn.port_in in self._ports():
@@ -916,7 +916,7 @@ class PoMenu(AbstractConnectionsMenu):
                         existing_conns |= ExistingConns.VISIBLE
                     else:
                         existing_conns |= ExistingConns.HIDDEN
-                        
+
             return existing_conns
         return existing_conns
 
@@ -928,7 +928,7 @@ class PoMenu(AbstractConnectionsMenu):
             else:
                 conn_ids = [c.connection_id for c in self._mng.connections
                             if c.in_canvas and c.port_in in self._ports()]
-        else:   
+        else:
             if self._port_mode() is PortMode.OUTPUT:
                 conn_ids = [c.connection_id for c in self._mng.connections
                             if c.port_out in self._ports()]
@@ -946,7 +946,7 @@ class PoMenu(AbstractConnectionsMenu):
     @Slot()
     def _cb_cut(self):
         self._mng.connections_clipboard.cb_cut(self._ports())
-    
+
     @Slot()
     def _cb_copy(self):
         self._mng.connections_clipboard.cb_copy(self._ports())
@@ -959,10 +959,10 @@ class PoMenu(AbstractConnectionsMenu):
     def _split_to_monos(self):
         if not isinstance(self._po, Portgroup):
             return
-        
+
         canvas.cb.portgroup_remove(
             self._po.group_id, self._po.portgroup_id)
-        
+
     @Slot()
     def _set_as_stereo_with(self):
         port: Port = self.sender().data() # type:ignore
@@ -970,16 +970,16 @@ class PoMenu(AbstractConnectionsMenu):
         canvas.cb.portgroup_add(
             port.group_id, port.mode, port.type,
             (self._po.port_id, port.port_id))
-    
+
     @Slot()
     def _rename(self):
         dialog = CustomNameDialog(self._po)
         if not dialog.exec():
             return
-        
+
         pretty_name = dialog.pretty_name()
         save_in_jack = dialog.save_in_metadata()
-        
+
         if isinstance(self._po, Port):
             self._mng.custom_names.save_port(
                 self._po.full_name_id_free, pretty_name,
@@ -988,7 +988,7 @@ class PoMenu(AbstractConnectionsMenu):
                 self._mng.pretty_diff_checker.port_pretty_name_changed(
                     self._po.full_name)
             self._po.rename_in_canvas()
-            
+
             canvas.cb.port_rename(
                 self._po.group_id, self._po.port_id,
                 pretty_name, save_in_jack)
@@ -996,7 +996,7 @@ class PoMenu(AbstractConnectionsMenu):
         elif isinstance(self._po, Portgroup):
             pg_name, suffixes = portgroup_name_splitted(
                 *[p.cnv_name for p in self._po.ports])
-            
+
             for i, port in enumerate(self._po.ports):
                 suffix = suffixes[i]
                 if pretty_name:
@@ -1021,6 +1021,5 @@ class PoMenu(AbstractConnectionsMenu):
     def _display_port_infos(self):
         if not isinstance(self._po, Port):
             return
-        
+
         canvas.cb.port_info(self._po.group_id, self._po.port_id)
-        

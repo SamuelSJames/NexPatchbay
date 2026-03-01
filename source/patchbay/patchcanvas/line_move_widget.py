@@ -40,7 +40,7 @@ class LineMoveWidget(QGraphicsPathItem):
         self._parent_is_portgroup = bool(len(parent.get_port_ids()) > 1)
 
         self.ready_to_disc = False
-        
+
         self._port_mode = port_mode
         self._port_type = port_type
         self._port_posinportgrp = port_posinportgrp
@@ -51,7 +51,7 @@ class LineMoveWidget(QGraphicsPathItem):
         # Port position doesn't change while moving around line
         self._item_x = parent.scenePos().x()
         self._item_y = parent.scenePos().y()
-        
+
         self._item_width = parent.get_connection_distance()
         self.setZValue(Zv.MOV_LINE.value)
         canvas.scene.addItem(self)
@@ -62,7 +62,7 @@ class LineMoveWidget(QGraphicsPathItem):
 
     def update_line_pos(self, scene_pos: QPointF):
         theme = canvas.theme.line
-        
+
         match self._port_type:
             case PortType.AUDIO_JACK:
                 theme = theme.audio
@@ -72,9 +72,9 @@ class LineMoveWidget(QGraphicsPathItem):
                 theme = theme.alsa
             case PortType.VIDEO:
                 theme = theme.video
-            
+
         theme = theme.selected
-        
+
         pen = theme.fill_pen
         pen.setColor(theme.background_color)
         pen.setStyle(Qt.PenStyle.DotLine if self.ready_to_disc
@@ -103,7 +103,7 @@ class LineMoveWidget(QGraphicsPathItem):
                 delta = (last_new_y - first_new_y) / (self._portgrp_len_to -1)
                 new_y1 = first_new_y + (self._port_posinportgrp_to * delta)
                 new_y = new_y1 - ( (last_new_y - first_new_y) / 2 ) \
-                        - (canvas.theme.port_height * phito)           
+                        - (canvas.theme.port_height * phito)
         else:
             if self._portgrp_len > 1:
                 first_old_y = canvas.theme.port_height * phi
@@ -123,7 +123,7 @@ class LineMoveWidget(QGraphicsPathItem):
                 new_y1 = first_new_y + (self._port_posinportgrp_to * delta)
                 new_y = new_y1 - ( (last_new_y - first_new_y) / 2 ) \
                         - canvas.theme.port_height * phito
-                        
+
         old_y += self._item_y
 
         final_x = scene_pos.x() - self._item_x

@@ -16,7 +16,7 @@ from .bar_widget_transport import BarWidgetTransport
 
 class PatchbayToolBar(QToolBar):
     menu_asked = Signal(QPoint)
-    
+
     def __init__(self, parent):
         super().__init__(parent)
         self.setContextMenuPolicy(Qt.ContextMenuPolicy.PreventContextMenu)
@@ -36,7 +36,7 @@ class PatchbayToolBar(QToolBar):
                      BarWidgetJack, BarWidgetTransport,
                      NoneType, SpacerWidget, HiddensIndicator))):
             return
-        
+
         # execute the menu, exit if no action
         if QT5:
             point = event.screenPos().toPoint() # type:ignore
@@ -45,13 +45,13 @@ class PatchbayToolBar(QToolBar):
         point.setY(self.mapToGlobal(QPoint(0, self.height())).y())
 
         self.menu_asked.emit(point)
-    
+
     def sizeHint(self) -> QSize:
         if self._min_width is None:
             return super().sizeHint()
         size = super().sizeHint()
         size.setWidth(self._min_width)
         return size
-    
+
     def needed_width(self) -> int:
         return super().sizeHint().width()

@@ -30,7 +30,7 @@ class CanvasMenu(QMenu):
         main_win = self.mng.main_win
         if main_win is None:
             return
-        
+
         main_win.winId()
         parent_window_handle = main_win.windowHandle()
         if not parent_window_handle:
@@ -47,10 +47,10 @@ class CanvasMenu(QMenu):
         self._selected_boxes = dict[int, PortMode]()
         self._scene_pos = (0, 0)
         self._build()
-        
+
     def _build(self):
         self.clear()
-        
+
         if self._selected_boxes:
             self.selected_boxes_menu = SelectedBoxesMenu(self)
             self.selected_boxes_menu.set_patchbay_manager(self.mng)
@@ -85,7 +85,7 @@ class CanvasMenu(QMenu):
             "%s\tCtrl+Alt+A" %
                 _translate('views_menu', 'Follow the signal chain'))
         act_arrange_signal.triggered.connect(self._arrange_follow_signal)
-        
+
         act_arrange_facing = menu_arrange.addAction(
             "%s\tCtrl+Alt+Q" %
                 _translate('views_menu', 'Two columns facing each other'))
@@ -119,7 +119,7 @@ class CanvasMenu(QMenu):
         self.action_midi.setChecked(port_types_view is PortTypesViewFlag.MIDI)
         self.action_midi.triggered.connect(
             self.port_types_view_midi_choice)
-        
+
         self.action_cv = self.port_types_menu.addAction(
             _translate('patchbay', 'CV only'))
         self.action_cv.setCheckable(True)
@@ -190,12 +190,12 @@ class CanvasMenu(QMenu):
 
     def set_selected_boxes(self, selected_boxes: dict[int, PortMode]):
         self._selected_boxes = selected_boxes
-    
+
     @Slot()
     def _new_exclusive_view(self):
         self.mng.new_view(exclusive_with=self._selected_boxes)
         patchcanvas.clear_selection()
-    
+
     @Slot()
     def _hide_selected_boxes(self):
         for group_id, port_mode in self._selected_boxes.items():
@@ -268,10 +268,10 @@ class CanvasMenu(QMenu):
     @Slot()
     def _list_hidden_groups(self):
         self.show_hiddens_menu.clear()
-        
+
         dark = utils.is_dark_theme(self)
         has_hiddens = False
-        
+
         for group in self.mng.groups:
             hidden_port_mode = group.current_position.hidden_port_modes()
             if hidden_port_mode:
@@ -280,7 +280,7 @@ class CanvasMenu(QMenu):
                          or (group.ins_ptv & self.mng.port_types_view
                             and PortMode.INPUT in hidden_port_mode)):
                     continue
-                
+
                 group_act = self.show_hiddens_menu.addAction(
                     group.cnv_name)
                 group_act.setIcon(utils.get_icon(
@@ -290,9 +290,9 @@ class CanvasMenu(QMenu):
                 group_act.setData(group.group_id)
                 group_act.triggered.connect(self._show_hidden_group)
                 has_hiddens = True
-        
+
         self.show_hiddens_menu.addSeparator()
-        
+
         color_scheme = 'breeze-dark' if dark else 'breeze'
         act_white_list = self.show_hiddens_menu.addAction(
             QIcon(QPixmap(
@@ -302,7 +302,7 @@ class CanvasMenu(QMenu):
         act_white_list.setChecked(
             self.mng.view().is_white_list)
         act_white_list.triggered.connect(self._set_view_white_list)
-        
+
         if not has_hiddens:
             for gpos in self.mng.views.iter_group_poses(
                     view_num=self.mng.view_number):
@@ -329,14 +329,14 @@ class CanvasMenu(QMenu):
         with CancellableAction(self.mng, CancelOp.VIEW) as a:
             a.name = _translate('undo', 'Restore "%s"') % sender_text
             self.mng.restore_group_hidden_sides(group_id, self._scene_pos)
-    
+
     @Slot()
     def _show_all_hidden_groups(self):
         sender_text: str = self.sender().text() # type:ignore
         with CancellableAction(self.mng, CancelOp.VIEW) as a:
             a.name = sender_text
             self.mng.restore_all_group_hidden_sides()
-    
+
     @Slot(bool)
     def _set_view_white_list(self, state: bool):
         sender_text: str = self.sender().text() # type:ignore
@@ -349,11 +349,11 @@ class CanvasMenu(QMenu):
         short_locale = 'en'
         manual_dir = self.mng._manual_path
         if manual_dir is None:
-            return        
-        
+            return
+
         locale_str = QLocale.system().name()
         html_path = manual_dir / locale_str[:2] / 'manual.html'
-        
+
         if (len(locale_str) > 2 and '_' in locale_str
                 and html_path.is_file()):
             short_locale = locale_str[:2]

@@ -15,7 +15,7 @@ class CanvasPortInfoDialog(QDialog):
         self.ui.setupUi(self)
 
         self._port = None
-        
+
         self._show_alsa_props(False)
 
         self._populating = False
@@ -25,7 +25,7 @@ class CanvasPortInfoDialog(QDialog):
             self.update_contents)
 
     def _show_alsa_props(self, yesno: bool):
-        for widget in (self.ui.labelAlsaClientId, 
+        for widget in (self.ui.labelAlsaClientId,
                        self.ui.labelColonAlsaClientId,
                        self.ui.labelAlsaClientIdNum,
                        self.ui.labelAlsaPortId,
@@ -71,14 +71,14 @@ class CanvasPortInfoDialog(QDialog):
         port_full_name = self._port.full_name
         if self._port.type is PortType.MIDI_ALSA:
             splitted_names = port_full_name.split(':')
-            
+
             port_full_name = ':'.join(splitted_names[4:])
             self.ui.labelAlsaClientIdNum.setText(splitted_names[2])
             self.ui.labelAlsaPortIdNum.setText(splitted_names[3])
             self.ui.labelJackUuid.setVisible(False)
             self.ui.labelColonJackUuid.setVisible(False)
             self.ui.lineEditUuid.setVisible(False)
-            
+
         self.ui.lineEditFullPortName.setText(port_full_name)
         self.ui.lineEditGracefulName.setText(self._port.graceful_name)
         self.ui.lineEditCustomName.setText(
@@ -92,8 +92,8 @@ class CanvasPortInfoDialog(QDialog):
             if uuid_dict is not None:
                 self.ui.tableWidgetMetadatas.setRowCount(len(uuid_dict))
                 row = 0
-                
-                for key, value in uuid_dict.items():                    
+
+                for key, value in uuid_dict.items():
                     key_item = QTableWidgetItem(key)
                     value_item = QTableWidgetItem(value)
                     key_item.setData(Qt.ItemDataRole.UserRole, key)
@@ -101,18 +101,18 @@ class CanvasPortInfoDialog(QDialog):
                     self.ui.tableWidgetMetadatas.setItem(row, 0, key_item) # type:ignore
                     self.ui.tableWidgetMetadatas.setItem(row, 1, value_item) # type:ignore
                     row += 1
-                
+
             self.ui.tableWidgetMetadatas.resizeColumnToContents(0)
-        
+
         if not self._port.type.is_jack:
             self.ui.line.setVisible(False)
             self.ui.labelJackMetadatas.setVisible(False)
             self.ui.tableWidgetMetadatas.setVisible(False)
-        
+
     def show(self):
         super().show()
         self.adjustSize()
-        
+
     def _cell_changed(self, row: int, column: int):
         if self._populating:
             return

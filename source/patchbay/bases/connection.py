@@ -38,7 +38,7 @@ class Connection:
             self.port_in.group_id, self.port_in.port_id)
 
         self.in_canvas = True
-        
+
         for port in (self.port_out, self.port_in):
             port.set_hidden_conn_in_canvas(self, False)
 

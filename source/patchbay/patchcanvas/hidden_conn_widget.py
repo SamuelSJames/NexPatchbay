@@ -22,20 +22,20 @@ class HiddenConnWidget(QGraphicsPathItem):
     '''This widget is shown near to a port if it has hidden connection(s)'''
     def __init__(self, port_widget: 'PortWidget'):
         QGraphicsPathItem.__init__(self)
-        
+
         self._port_widget = port_widget
         self._semi_hidden = False
         self._polygon = QPolygonF()
-        
+
         self._theme_attrs = _ThemeAttributes()
-        
+
         self.setBrush(QColor(0, 0, 0, 0))
         self.setGraphicsEffect(None) # type:ignore or #TODO what should be sent ?
         self.update_theme()
         self.update_line_pos()
         self.update_line_gradient()
         self.setZValue(Zv.HIDDEN_CONN.value)
-        
+
     def semi_hide(self, yesno: bool):
         self._semi_hidden = yesno
         self.update_line_gradient()
@@ -43,13 +43,13 @@ class HiddenConnWidget(QGraphicsPathItem):
     def update_line_pos(self, fast_move=False):
         x = self._port_widget.connect_pos().x()
         y = self._port_widget.scenePos().y()
-        
+
         polygon = QPolygonF()
-        
+
         dx = 3
         dy1 = 5
         dy2 = 3
-        
+
         x_type_offset = 0
         if not self._port_widget.isVisible():
             # if port is hidden, the group box is wrapped
@@ -62,7 +62,7 @@ class HiddenConnWidget(QGraphicsPathItem):
                 x_type_offset += 2
             elif port_type is PortType.VIDEO:
                 x_type_offset += 3
-        
+
         if self._port_widget.get_port_mode() is PortMode.OUTPUT:
             x += x_type_offset
             polygon += QPointF(x + dx, y + dy1)
@@ -98,7 +98,7 @@ class HiddenConnWidget(QGraphicsPathItem):
             theme = theme.alsa
         elif port_type is PortType.VIDEO:
             theme = theme.video
-                
+
         tha = _ThemeAttributes()
         tha.base_pen = theme.fill_pen
         tha.color_main = theme.background_color
@@ -106,14 +106,14 @@ class HiddenConnWidget(QGraphicsPathItem):
         if tha.color_alter is None:
             tha.color_alter = tha.color_main
         tha.base_width = tha.base_pen.widthF() + 0.000001
-        
+
         self._theme_attrs = tha
 
     def update_line_gradient(self):
         tha = self._theme_attrs
-        
+
         if self._semi_hidden:
-            
+
             shd = options.semi_hide_opacity
             bgcolor = canvas.theme.scene_background_color
 
@@ -124,15 +124,15 @@ class HiddenConnWidget(QGraphicsPathItem):
                 tha.color_main.alpha())
         else:
             color_main = tha.color_main
-    
+
         self.setPen(QPen(
             QBrush(color_main), tha.base_width * 0.5,
             Qt.PenStyle.SolidLine, Qt.PenCapStyle.FlatCap))
-        
+
     def paint(self, painter, option, widget):
         if canvas.loading_items:
             return
-        
+
         painter.save()
         painter.setRenderHint(QPainter.RenderHint.Antialiasing, True)
 

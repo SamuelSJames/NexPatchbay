@@ -48,7 +48,7 @@ class PortgroupWidget(ConnectableWidget):
         # Base Variables
         self._portgrp_width = 15
         self._portgrp_height = canvas.theme.port_height
-        
+
         theme = canvas.theme.portgroup
         if self._port_type is PortType.AUDIO_JACK:
             if self._port_subtype is PortSubType.CV:
@@ -61,7 +61,7 @@ class PortgroupWidget(ConnectableWidget):
             theme = theme.alsa
         elif self._port_type is PortType.VIDEO:
             theme = theme.video
-        
+
         self._theme = theme
         self._portgrp_font = theme.font
 
@@ -71,14 +71,14 @@ class PortgroupWidget(ConnectableWidget):
         self._print_name_right = ''
         self._name_truncked = False
         self._trunck_sep = '⠿'
-        
+
         self._ports_widgets = [
             p.widget for p in canvas.list_ports(group_id=portgrp.group_id)
             if p.portgrp_id == portgrp.portgrp_id]
 
         for port_widget in self._ports_widgets:
             port_widget.set_portgroup_widget(self)
-            
+
         self.setZValue(ZvBox.PORTGRP.value)
 
     def get_connection_distance(self) -> float:
@@ -107,7 +107,7 @@ class PortgroupWidget(ConnectableWidget):
                 theme = theme.alsa
             case PortType.VIDEO:
                 theme = theme.video
-        
+
         self._theme = theme
         self._portgrp_font = theme.font
 
@@ -118,7 +118,7 @@ class PortgroupWidget(ConnectableWidget):
 
         if width_limited:
             long_size = self._theme.get_text_width(self._print_name)
-            
+
             if long_size > width_limited:
                 name_len = len(self._print_name)
                 middle = int(name_len / 2)
@@ -128,7 +128,7 @@ class PortgroupWidget(ConnectableWidget):
                 left_size = self._theme.get_text_width(left_text)
                 middle_size = self._theme.get_text_width(middle_text)
                 right_size = self._theme.get_text_width(right_text)
-                
+
                 while left_size + middle_size + right_size > width_limited:
                     if left_size > right_size:
                         left_text = left_text[:-1]
@@ -136,7 +136,7 @@ class PortgroupWidget(ConnectableWidget):
                     else:
                         right_text = right_text[1:]
                         right_size = self._theme.get_text_width(right_text)
-                        
+
                     if not (left_text or right_text):
                         break
 
@@ -152,7 +152,7 @@ class PortgroupWidget(ConnectableWidget):
             return (self._theme.get_text_width(self._print_name)
                     + self._theme.get_text_width(self._trunck_sep)
                     + self._theme.get_text_width(self._print_name_right))
-        
+
         return self._theme.get_text_width(self._print_name)
 
     def ensure_selection_with_ports(self):
@@ -166,12 +166,12 @@ class PortgroupWidget(ConnectableWidget):
             self, change: QGraphicsItem.GraphicsItemChange, value: bool):
         if change == QGraphicsItem.GraphicsItemChange.ItemSelectedHasChanged:
             self.changing_select_state = True
-            
+
             modify_port_selection = True
             for port_widget in self._ports_widgets:
                 if port_widget.changing_select_state:
                     modify_port_selection = False
-            
+
             if modify_port_selection:
                 for port_widget in self._ports_widgets:
                     if not port_widget.changing_select_state:
@@ -186,7 +186,7 @@ class PortgroupWidget(ConnectableWidget):
             # prefer move box if zoom is too low
             event.ignore()
             return
-        
+
         if canvas.is_line_mov:
             return
 
@@ -197,7 +197,7 @@ class PortgroupWidget(ConnectableWidget):
         is_only_connect = bool(
             QApplication.keyboardModifiers()
             & Qt.KeyboardModifier.ControlModifier)
-        
+
         self.parentItem().setFlag(QGraphicsItem.GraphicsItemFlag.ItemIsMovable, False)
         start_point = canvas.scene.screen_position(
             self.scenePos() + QPointF(0.0, self.boundingRect().bottom())) # type:ignore
@@ -209,7 +209,7 @@ class PortgroupWidget(ConnectableWidget):
             start_point = canvas.scene.screen_position(
                 self.scenePos() # type:ignore
                 + QPointF(self._portgrp_width + more, self._portgrp_height))
-        
+
         canvas.cb.portgroup_menu_call(
             self._group_id, self._portgrp_id,
             is_only_connect, start_point.x(), start_point.y())
@@ -257,7 +257,7 @@ class PortgroupWidget(ConnectableWidget):
 
         if self._port_mode is PortMode.INPUT:
             text_pos = QPointF(self._ports_width + 3, text_y_pos)
-            
+
             x_ports_border = self._ports_width - line_hinting
             x_arrowbase = self._portgrp_width - middle_width - line_hinting
             x_arrowmid = self._portgrp_width - middle_width / 2 - line_hinting
@@ -265,7 +265,7 @@ class PortgroupWidget(ConnectableWidget):
 
         elif self._port_mode is PortMode.OUTPUT:
             text_pos = QPointF(3.0 + middle_width, text_y_pos)
-            
+
             x_ports_border = (self._portgrp_width - self._ports_width
                               + line_hinting)
             x_arrowbase = middle_width + line_hinting
@@ -280,7 +280,7 @@ class PortgroupWidget(ConnectableWidget):
         y_top = line_hinting
         y_bottom = p_height * len(self._port_ids) - line_hinting
 
-        if self._port_type is PortType.MIDI_JACK:            
+        if self._port_type is PortType.MIDI_JACK:
             points = [(x_ports_border, y_top),
                       (x_arrowbase, y_top),
                       (x_arrowbase + (x_arrowmid - x_arrowbase) * 0.62,
@@ -321,7 +321,7 @@ class PortgroupWidget(ConnectableWidget):
                       (x_arrowbase, y_bottom),
                       (x_ports_border, y_bottom),
                       (x_ports_border, y_top)]
-        
+
         polygon = QPolygonF()
         for xy in points:
             polygon += QPointF(*xy)
@@ -340,7 +340,7 @@ class PortgroupWidget(ConnectableWidget):
             painter.setBrush(portgrp_gradient)
         else:
             painter.setBrush(color_main)
-            
+
         painter.setPen(poly_pen)
         painter.drawPolygon(polygon)
 
@@ -371,17 +371,17 @@ class PortgroupWidget(ConnectableWidget):
             box_bg_col = box_theme.background_color
             ra = box_bg_col.alphaF()
             rb = 1.0 - ra
-            
+
             circle_bg_col = QColor()
             circle_bg_col.setRgbF(
                 scene_col.redF() * rb + box_bg_col.redF() * ra,
                 scene_col.greenF() * rb + box_bg_col.greenF() * ra,
                 scene_col.blueF() * rb + box_bg_col.blueF() * ra)
-            
+
             painter.setBrush(circle_bg_col)
             painter.setPen(poly_pen)
-            
-            radius = abs(x_arrowhead - x_arrowmid) * 0.667            
+
+            radius = abs(x_arrowhead - x_arrowmid) * 0.667
             painter.drawEllipse(
                 QPointF(x_arrowmid, p_height * len(self._port_ids) * 0.5),
                 radius, radius)
@@ -402,8 +402,7 @@ class PortgroupWidget(ConnectableWidget):
             color.setAlphaF(color.alphaF() * 0.25)
             trunck_pen.setColor(color)
             painter.setPen(trunck_pen)
-            
+
             painter.drawText(QPointF(sep_x, text_pos.y() + 1), self._trunck_sep)
 
         painter.restore()
-

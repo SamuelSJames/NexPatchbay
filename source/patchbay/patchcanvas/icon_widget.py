@@ -41,7 +41,7 @@ _icons_pixmaps_cache = dict[QIcon, dict[int, QPixmap]]()
 def get_app_icon(icon_name: str) -> QIcon:
     if icon_name in _app_icons_cache.keys():
         return _app_icons_cache[icon_name]
-    
+
     icon = QIcon.fromTheme(icon_name)
 
     if icon.isNull():
@@ -90,12 +90,12 @@ class IconPixmapWidget(QGraphicsPixmapItem):
         if not self.icon.isNull():
             scale = canvas.scene.get_zoom_scale()
             pix_size = int(0.5 + self._icon_size * scale)
-            
+
             self_icon_pix_cache = _icons_pixmaps_cache.get(self.icon)
             if self_icon_pix_cache is None:
                 self_icon_pix_cache = dict[int, QPixmap]()
                 _icons_pixmaps_cache[self.icon] = self_icon_pix_cache
-                
+
             pixmap = self_icon_pix_cache.get(pix_size)
             if pixmap is None:
                 pixmap = self.icon.pixmap(pix_size, pix_size)
@@ -114,7 +114,7 @@ class IconPixmapWidget(QGraphicsPixmapItem):
 
         pix_size = int(0.5 + self._icon_size *scale)
         pixmap = _icons_pixmaps_cache[self.icon].get(pix_size)
-        
+
         if pixmap is None:
             pixmap = self.icon.pixmap(pix_size, pix_size)
             _icons_pixmaps_cache[self.icon][pix_size] = pixmap
@@ -130,7 +130,7 @@ class IconPixmapWidget(QGraphicsPixmapItem):
 
     def set_pos(self, x: int, y: int):
         self.setPos(float(x), float(y))
-        
+
     def type(self) -> CanvasItemType:
         return CanvasItemType.ICON
 
@@ -212,7 +212,7 @@ class IconSvgWidget(QGraphicsSvgItem): # type:ignore
                 icon_size = int(box_theme.icon_size)
                 self._size = QRectF(4, 4, icon_size, icon_size)
                 self._icon_size = icon_size
-                
+
                 match name:
                     case 'monitor_capture':
                         icon_path = theme.monitor_capture
@@ -231,7 +231,7 @@ class IconSvgWidget(QGraphicsSvgItem): # type:ignore
         self._renderer.setAspectRatioMode(Qt.AspectRatioMode.KeepAspectRatio)
         self.setSharedRenderer(self._renderer)
         self.update()
-        
+
     def update_zoom(self, scale: float):
         pass
 
@@ -259,6 +259,5 @@ class IconSvgWidget(QGraphicsSvgItem): # type:ignore
         painter.restore()
 
 # ------------------------------------------------------------------------------------------------------------
-
 
 

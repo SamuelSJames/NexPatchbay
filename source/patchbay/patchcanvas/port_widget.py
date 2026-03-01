@@ -38,13 +38,13 @@ from .grouped_lines_widget import GroupedLinesWidget
 if TYPE_CHECKING:
     from .box_widget_moth import BoxWidgetMoth
     from .portgroup_widget import PortgroupWidget
-    
+
 
 # --------------------
 
 class PortWidget(ConnectableWidget):
     def __init__(self, port: PortObject, parent: 'BoxWidgetMoth'):
-        ConnectableWidget.__init__(self, port, parent)        
+        ConnectableWidget.__init__(self, port, parent)
         self._logger = logging.getLogger(__name__)
 
         # Save Variables, useful for later
@@ -71,7 +71,7 @@ class PortWidget(ConnectableWidget):
                 theme = theme.audio
         elif self._port_type == PortType.MIDI_JACK:
             theme = theme.midi
-        
+
         self._theme = theme
         self._port_font = theme.font
 
@@ -114,7 +114,7 @@ class PortWidget(ConnectableWidget):
 
         if width_limited:
             long_size = self._theme.get_text_width(self._print_name)
-            
+
             if long_size > width_limited:
                 name_len = len(self._print_name)
                 middle = int(name_len / 2)
@@ -132,7 +132,7 @@ class PortWidget(ConnectableWidget):
                     else:
                         right_text = right_text[1:]
                         right_size = self._theme.get_text_width(right_text)
-                        
+
                     if not (left_text or right_text):
                         break
 
@@ -146,7 +146,7 @@ class PortWidget(ConnectableWidget):
             return (self._theme.get_text_width(self._print_name)
                     + self._theme.get_text_width(self._trunck_sep)
                     + self._theme.get_text_width(self._print_name_right))
-        
+
         return self._theme.get_text_width(self._print_name)
 
     def set_as_stereo(self, port_id: int):
@@ -160,13 +160,13 @@ class PortWidget(ConnectableWidget):
 
     def _update_connect_pos(self):
         phi = 0.75 if self._pg_len > 2 else 0.62
-        
+
         height = canvas.theme.port_height
-        
+
         x_delta = (self._port_width if self._port_mode is PortMode.OUTPUT
                    else 0.0)
         y_delta = canvas.theme.port_height / 2
-        
+
         if self._pg_len >= 2:
             first_old_y = height * phi
             last_old_y = height * (self._pg_len - phi)
@@ -174,7 +174,7 @@ class PortWidget(ConnectableWidget):
             y_delta = (first_old_y
                        + (self._pg_pos * delta)
                        - (height * self._pg_pos))
-            
+
         if not self.isVisible():
             # item is hidden port when its box is folded
             y_delta = height - y_delta
@@ -190,11 +190,11 @@ class PortWidget(ConnectableWidget):
 
     def itemChange(
             self, change: QGraphicsItem.GraphicsItemChange, value: bool):
-        if change == QGraphicsItem.GraphicsItemChange.ItemSelectedHasChanged:            
+        if change == QGraphicsItem.GraphicsItemChange.ItemSelectedHasChanged:
             if self.changing_select_state:
                 self.changing_select_state = False
                 return
-            
+
             self.changing_select_state = True
 
             if self._portgrp_widget is not None:
@@ -202,12 +202,12 @@ class PortWidget(ConnectableWidget):
                     self.setSelected(self._portgrp_widget.isSelected())
                 elif not self._portgrp_widget.changing_select_state:
                     self._portgrp_widget.ensure_selection_with_ports()
-            
+
             self.setZValue(ZvBox.SEL_PORT.value if self.isSelected()
                            else ZvBox.PORT.value)
 
             connections = [c for c in canvas.list_connections(self._port)]
-            
+
             if connections:
                 other_group_ids = set[int]()
                 selected = self.isSelected()
@@ -220,12 +220,12 @@ class PortWidget(ConnectableWidget):
                     for in_group_id in other_group_ids:
                         GroupedLinesWidget.connections_changed(
                             self._group_id, in_group_id)
-                       
+
                 elif self._port_mode is PortMode.INPUT:
                     for conn in connections:
                         conn.in_selected = selected
                         other_group_ids.add(conn.group_out_id)
-                
+
                     for out_group_id in other_group_ids:
                         GroupedLinesWidget.connections_changed(
                             out_group_id, self._group_id)
@@ -239,7 +239,7 @@ class PortWidget(ConnectableWidget):
             # prefer move box if zoom is too low
             event.ignore()
             return
-        
+
         if canvas.is_line_mov:
             return
 
@@ -255,13 +255,13 @@ class PortWidget(ConnectableWidget):
         # and be able to read its portgroup name.
         start_point = canvas.scene.screen_position(
             self.scenePos() + QPointF(0.0, canvas.theme.port_height)) # type:ignore
-        
+
         if (self._portgrp_id and self._port_mode is PortMode.INPUT
                 and self._pg_pos + 1 <= self._pg_len // 2):
             start_point = canvas.scene.screen_position(
                 self.scenePos() + QPointF(
                     0.0, canvas.theme.port_height * (0.5 + self._pg_len / 2.0))) # type:ignore
-            
+
         bottom_screen = QApplication.primaryScreen().geometry().bottom()
         more = 12 if self._port_mode is PortMode.OUTPUT else 0
 
@@ -269,7 +269,7 @@ class PortWidget(ConnectableWidget):
             start_point = canvas.scene.screen_position(
                 self.scenePos()
                 + QPointF(self._port_width + more, canvas.theme.port_height)) # type:ignore
-        
+
         canvas.cb.port_menu_call(
             self._group_id, self._port_id,
             is_only_connect, start_point.x(), start_point.y())
@@ -286,10 +286,10 @@ class PortWidget(ConnectableWidget):
     def paint(self, painter, option, widget):
         if canvas.loading_items:
             return
-        
+
         painter.save()
         painter.setRenderHint(QPainter.RenderHint.Antialiasing, True)
-        
+
         theme = canvas.theme.port
 
         if self._port_type is PortType.AUDIO_JACK:
@@ -303,10 +303,10 @@ class PortWidget(ConnectableWidget):
             theme = theme.alsa
         elif self._port_type is PortType.VIDEO:
             theme = theme.video
-        
+
         if self.isSelected():
             theme = theme.selected
-        
+
         poly_image = theme.background_image
         poly_color = theme.background_color
         poly_color_alter = theme.background2_color
@@ -319,7 +319,7 @@ class PortWidget(ConnectableWidget):
 
         line_hinting = poly_pen.widthF() / 2
         p_height = canvas.theme.port_height
-        
+
         text_y_pos = ((p_height - 0.667 * self._port_font.pixelSize()) / 2
                       + self._port_font.pixelSize() * 0.667)
 
@@ -396,7 +396,7 @@ class PortWidget(ConnectableWidget):
 
         elif self._port_type is PortType.VIDEO:
             x_cam_base = x_box_border + x_arrowhead - x_arrowbase
-            
+
             points = [(x_box_border, y_top),
                       (x_cam_base, y_top + y_bottom * 0.3),
                       (x_cam_base, y_top),
@@ -433,7 +433,7 @@ class PortWidget(ConnectableWidget):
             painter.setBrush(port_gradient)
         else:
             painter.setBrush(poly_color)
-        
+
         painter.setPen(poly_pen)
         painter.drawPolygon(polygon)
 
@@ -455,7 +455,7 @@ class PortWidget(ConnectableWidget):
 
             elif (self._port_subtype is PortSubType.A2J
                     or self._port_type is PortType.MIDI_ALSA):
-                # draw the little circle for a2j (or MidiBridge) port.                
+                # draw the little circle for a2j (or MidiBridge) port.
                 # we emulate a hole in the port, so we need the background
                 # of the box.
 
@@ -468,18 +468,18 @@ class PortWidget(ConnectableWidget):
                 box_bg_col = box_theme.background_color
                 ra = box_bg_col.alphaF()
                 rb = 1.0 - ra
-                
+
                 circle_bg_col = QColor()
                 circle_bg_col.setRgbF(
                     scene_col.redF() * rb + box_bg_col.redF() * ra,
                     scene_col.greenF() * rb + box_bg_col.greenF() * ra,
                     scene_col.blueF() * rb + box_bg_col.blueF() * ra)
-                
+
                 painter.setBrush(circle_bg_col)
                 painter.setPen(poly_pen)
-                
+
                 radius = abs(x_arrowhead - x_arrowmid) * 0.667
-                
+
                 painter.drawEllipse(
                     QPointF(x_arrowmid, p_height / 2.0), radius, radius)
 
@@ -503,10 +503,10 @@ class PortWidget(ConnectableWidget):
                 text_pos.setX(text_pos.x() + middle_width)
 
         painter.drawText(text_pos, self._print_name)
-        
+
         if self._name_truncked:
             sep_x = text_pos.x() + sizer.horizontalAdvance(self._print_name)
-            
+
             painter.drawText(QPointF(sep_x + sep_width, text_pos.y()),
                              self._print_name_right)
 

@@ -17,7 +17,7 @@ class PortMode(IntFlag):
     INPUT = 0x01
     OUTPUT = 0x02
     BOTH = INPUT | OUTPUT
-    
+
     def opposite(self) -> 'PortMode':
         """Return the opposite mode (INPUT <-> OUTPUT, BOTH <-> NULL)."""
         if self is PortMode.INPUT:
@@ -51,12 +51,12 @@ class PortType(IntFlag):
     MIDI_ALSA = 0x04
     VIDEO = 0x08
     PARAMETER = 0x10
-    
+
     @classmethod
     def _missing_(cls, value) -> 'PortType':
         """Return default `PortType.NULL` for unknown values."""
         return PortType.NULL
-    
+
     @property
     def is_jack(self) -> bool:
         """Return True for JACK-based port types."""
@@ -84,11 +84,11 @@ class BoxType(Enum):
     LADISH_ROOM = 6
     CLIENT = 7
     INTERNAL = 8
-    
+
     def __lt__(self, other: 'BoxType'):
         """Compare BoxType by their integer value."""
         return self.value < other.value
-    
+
 
 class BoxLayoutMode(IntEnum):
     """Define how ports are arranged inside a box."""
@@ -96,11 +96,11 @@ class BoxLayoutMode(IntEnum):
     AUTO = 0
     '''Choose the layout between HIGH or LARGE
     within the box area.'''
-    
+
     HIGH = 1
     """When only INPUT or only OUTPUT ports exist the title is on top.
     If both types are present, ports are displayed top-to-bottom."""
-    
+
     LARGE = 2
     """When only INPUT or only OUTPUT ports exist the title is on a side.
     If both types are present, ports are displayed in two columns
@@ -139,7 +139,7 @@ class PortTypesViewFlag(IntFlag):
         if self is PortTypesViewFlag.ALL:
             return 'ALL'
 
-        str_list = list[str]()        
+        str_list = list[str]()
         for ptv in PortTypesViewFlag:
             if ptv in (PortTypesViewFlag.NONE, PortTypesViewFlag.ALL):
                 continue
@@ -147,7 +147,7 @@ class PortTypesViewFlag(IntFlag):
             if self & ptv and isinstance(ptv.name, str):
                 str_list.append(ptv.name)
         return '|'.join(str_list)
-    
+
     @staticmethod
     def from_config_str(input_str: str) -> 'PortTypesViewFlag':
         """Parse a config string into a `PortTypesViewFlag` value."""
@@ -163,7 +163,7 @@ class PortTypesViewFlag(IntFlag):
         for ptv in PortTypesViewFlag:
             if ptv in (PortTypesViewFlag.NONE, PortTypesViewFlag.ALL):
                 continue
-                
+
             if ptv.name in names:
                 ret |= ptv
 
@@ -174,18 +174,18 @@ class Naming(Flag):
     """Define how clients and ports should be named"""
     TRUE_NAME = 0x0
     "True JACK or ALSA item name."
-    
+
     GRACEFUL = 0x1
     """Shorter, more readable name (no underscores) with
     custom arrangements."""
-    
+
     CUSTOM = 0x2
     "Custom name saved when user renames a port or group."
-    
+
     METADATA_PRETTY = 0x4
     """Pretty name from JACK metadata
     (http://jackaudio.org/metadata/pretty-name)"""
-    
+
     ALL = METADATA_PRETTY | CUSTOM | GRACEFUL
 
     @classmethod
@@ -198,18 +198,18 @@ class Naming(Flag):
             except:
                 continue
         return naming
-    
+
 
 class PrettyDiff(Flag):
     NO_DIFF = 0x0
     """No difference between internal pretty names and JACK's pretty names."""
-    
+
     NON_EXPORTED = 0x1
     "Some custom names are not exported to JACK."
-    
+
     NON_IMPORTED = 0x2
     "Some JACK pretty names are not present in custom names."
-    
+
     NON_BOTH = 0x3
     """Some custom names are not exported to JACK, and some JACK pretty
     names are not present in custom names."""

@@ -44,15 +44,15 @@ class ThemeManager:
             in distributions.'''
         APP_NAME = 'HoustonPatchbay'
         path_list = list[Path]()
-        
+
         path_list.append(xdg_data_home() / APP_NAME / 'themes')
-        
+
         if source_theme_dir is not None and source_theme_dir not in path_list:
             path_list.append(source_theme_dir)
-        
+
         for p in xdg_data_dirs():
             path_list.append(p / APP_NAME / 'themes')
-                
+
         return path_list
 
     def _check_theme_file_modified(self):
@@ -60,7 +60,7 @@ class ThemeManager:
                 or not self.current_theme_file.exists()):
             self._theme_file_timer.stop()
             return
-        
+
         try:
             last_modified = os.path.getmtime(self.current_theme_file)
         except:
@@ -69,7 +69,7 @@ class ThemeManager:
 
         if last_modified == self._last_modified:
             return
-        
+
         if not self._update_theme():
             self._last_modified = last_modified
 
@@ -85,19 +85,19 @@ class ThemeManager:
         except:
             _logger.error(f"failed to open {self.current_theme_file}")
             return False
-        
+
         theme_dict = self._convert_configparser_object_to_dict(conf)
         self._last_modified = os.path.getmtime(self.current_theme_file)
-        
+
         del canvas._theme
         canvas._theme = Theme()
         canvas._theme.read_theme(theme_dict, self.current_theme_file)
         canvas.scene.update_theme()
-        
+
         theme_ref = self.current_theme_file.parent.name
         canvas.cb.theme_changed(theme_ref)
         return True
-    
+
     @staticmethod
     def _convert_configparser_object_to_dict(
             conf: configparser.ConfigParser) -> dict:
@@ -122,7 +122,7 @@ class ThemeManager:
 
             for skey, svalue in value.items():
                 assert isinstance(svalue, str)
-                
+
                 if svalue.startswith('(') and svalue.endswith(')'):
                     new_value = svalue[1:-1].split(', ')
                     new_value = tuple([type_convert(v) for v in new_value])
@@ -133,12 +133,12 @@ class ThemeManager:
                     new_value = type_convert(svalue)
                 new_dict[skey] = new_value
             return_dict[key] = new_dict
-        
+
         return return_dict
-    
+
     def get_theme(self) -> str:
         return self.current_theme_file.parent.name
-    
+
     def set_theme(self, theme_name: str) -> bool:
         self.current_theme = theme_name
 
@@ -154,10 +154,10 @@ class ThemeManager:
         theme_is_valid = self._update_theme()
         if not theme_is_valid:
             return False
-        
+
         self.activate_watcher(os.access(self.current_theme_file, os.R_OK))
         return True
-    
+
     def set_fallback_theme(self):
         del canvas._theme
         canvas._theme = Theme()
@@ -171,13 +171,13 @@ class ThemeManager:
         lang_short = ''
         if len(lang) >= 2:
             lang_short = lang[:2]
-        
+
         for search_path in self.theme_paths:
             if not search_path.exists():
                 continue
-            
+
             editable = bool(os.access(search_path, os.W_OK))
-            
+
             for file_path in search_path.iterdir():
                 if file_path.name in themes_set:
                     continue
@@ -194,7 +194,7 @@ class ThemeManager:
                 except:
                     # TODO
                     continue
-    
+
                 name = file_path.name
 
                 # Search the theme name in the theme file
@@ -203,32 +203,32 @@ class ThemeManager:
                     conf_theme = conf['Theme']
                     if 'Name' in conf_theme.keys():
                         name = conf_theme['Name']
-                    
+
                     name_lang_key = f'Name[{lang_short}]'
-                    
+
                     if name_lang_key in conf_theme.keys():
                         name = conf_theme[name_lang_key]
 
-                conf.clear()                
+                conf.clear()
                 themes_set.add(file_path.name)
-                
+
                 theme_classes.append(
                     ThemeData(file_path.name, name, editable, str(full_path)))
 
         return theme_classes
-    
+
     def copy_and_load_current_theme(self, new_name: str) -> int:
         '''returns 0 if ok, 1 if no editable dir exists, 2 if copy fails'''
-        current_theme_dir = self.current_theme_file.parent        
+        current_theme_dir = self.current_theme_file.parent
         editable_dir = Path()
-        
+
         # find the first editable patchbay_themes directory
         # creating it if it doesn't exists
         for search_path in self.theme_paths:
             if search_path.exists():
                 if not search_path.is_dir():
                     continue
-                
+
                 if os.access(search_path, os.W_OK):
                     editable_dir = search_path
                     break
@@ -239,25 +239,25 @@ class ThemeManager:
                     continue
                 editable_dir = search_path
                 break
-        
+
         if not editable_dir.name:
             return 1
 
         new_dir = editable_dir.joinpath(new_name)
-        
+
         try:
             shutil.copytree(current_theme_dir, new_dir)
         except:
             return 2
-        
+
         self.current_theme_file = new_dir.joinpath('theme.conf')
-        
+
         conf = configparser.ConfigParser()
         try:
             # we don't need the file_list
             # it is just a convenience to mute conf.read
             file_list = conf.read(self.current_theme_file)
-            
+
             # rename the theme in its file with the new name
             # remove all translated names to prevent them to pass over
             # the new name.
@@ -277,7 +277,7 @@ class ThemeManager:
 
         self._update_theme()
         return 0
-    
+
     def activate_watcher(self, yesno: bool):
         if yesno:
             self._theme_file_timer.start()

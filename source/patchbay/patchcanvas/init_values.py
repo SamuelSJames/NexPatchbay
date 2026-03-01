@@ -51,7 +51,7 @@ MAX_PLUGIN_ID_ALLOWED = 0x7FF
 class CanvasNeverInit(Exception):
     def __init__(
             self, message='patchcanvas.init() was probably never called!'):
-        super().__init__(message)   
+        super().__init__(message)
 
 
 class CanvasSceneMissing(Exception):
@@ -70,12 +70,12 @@ class InlineDisplay(IntEnum):
 
 class BoxHidding(Enum):
     'Enum used for animations where there are hidding or restoring boxes'
-    
+
     NONE = auto()
     HIDDING = auto()
     RESTORING = auto()
 
-    
+
 # For Repulsive boxes
 class Direction(Enum):
     NONE = 0
@@ -83,7 +83,7 @@ class Direction(Enum):
     RIGHT = 2
     UP = 3
     DOWN = 4
-    
+
     def __lt__(self, other: 'Direction'):
         return self.value < other.value
 
@@ -99,7 +99,7 @@ class GridStyle(Enum):
     TECHNICAL_GRID = 1
     GRID = 2
     CHESSBOARD = 3
-    
+
     @classmethod
     def _missing_(cls, value) -> 'GridStyle':
         _logger.warning(
@@ -180,17 +180,17 @@ class CanvasOptionsObject:
     box_grouped_auto_layout_ratio = 1.0
     cell_width = 16
     cell_height = 12
-    
+
     def set_from_settings(self, settings: QSettings):
         for key, value in CanvasOptionsObject.__dict__.items():
             if key.startswith('_') or isinstance(value, Callable):
                 continue
-            
+
             try:
                 if isinstance(value, Enum):
                     setg_value = settings.value(
                         f'Canvas/{key}', value.name, type=str)
-                    
+
                     self.__setattr__(key, type(value)[setg_value])
                 else:
                     setg_value = settings.value(
@@ -201,17 +201,17 @@ class CanvasOptionsObject:
                 _logger.error(
                     f'wrong type in settings for Canvas/{key}, '
                     f'should be {type(value)}')
-            
+
     def save_to_settings(self, settings: QSettings):
         for key, value in self.__dict__.items():
             if key.startswith('_') or isinstance(value, Callable):
                 continue
-            
+
             try:
                 if isinstance(value, Enum):
                     settings.setValue(
                         f'Canvas/{key}', value.name)
-                
+
                 elif isinstance(value, (bool, int, float, str)):
                     settings.setValue(
                         f'Canvas/{key}', value)
@@ -234,7 +234,7 @@ class CanvasFeaturesObject:
 
 # ------------------------
 
-# object lists            
+# object lists
 class GroupObject:
     group_id: int
     group_name: str
@@ -251,7 +251,7 @@ class GroupObject:
         widgets: list[BoxWidget]
     else:
         widgets: list
-    
+
     def current_port_mode(self) -> PortMode:
         port_mode = PortMode.NULL
         for box in self.widgets:
@@ -265,7 +265,7 @@ class ConnectableObject:
     port_type: PortType
     port_subtype: PortSubType
     portgrp_id: int
-    
+
     def get_port_ids(self) -> tuple[int]:
         return tuple[int]()
 
@@ -281,7 +281,7 @@ class PortObject(ConnectableObject):
         widget: object
         portgrp: object
         hidden_conn_widget: object
-        
+
 
     pg_pos = 0 # index in the portgroup (if any)
     pg_len = 1 # length of the portgroup (if any)
@@ -309,7 +309,7 @@ class PortgrpObject(ConnectableObject):
 
     def __init__(self):
         self.ports = list[PortObject]()
-    
+
     def get_port_ids(self) -> tuple[int]:
         return tuple(self.port_id_list)
 
@@ -462,7 +462,7 @@ class Canvas:
         self._conns_inout_dict.clear()
         self.clipboard.clear()
         self.group_plugin_map.clear()
-        
+
         if self._scene is not None:
             self._scene.clear()
 
@@ -474,7 +474,7 @@ class Canvas:
 
     def add_box(self, box: 'BoxWidget'):
         self._all_boxes.append(box)
-        
+
     def remove_box(self, box: 'BoxWidget'):
         if box in self._all_boxes:
             self._all_boxes.remove(box)
@@ -485,25 +485,25 @@ class Canvas:
             self._ports_dict[port.group_id] = {port.port_id: port}
         else:
             self._ports_dict[port.group_id][port.port_id] = port
-    
+
     def add_portgroup(self, portgrp: PortgrpObject):
         gp_dict = self._portgrps_dict.get(portgrp.group_id)
         if gp_dict is None:
             self._portgrps_dict[portgrp.group_id] = {portgrp.portgrp_id: portgrp}
         else:
             self._portgrps_dict[portgrp.group_id][portgrp.portgrp_id] = portgrp
-        
+
         for port in self.list_ports(group_id=portgrp.group_id):
             if port.port_id in portgrp.port_id_list:
                 portgrp.ports.append(port)
                 port.portgrp = portgrp
-    
+
     def add_connection(self, conn: ConnectionObject):
         self._conns_dict[conn.connection_id] = conn
 
         gp_outin_out_dict = self._conns_outin_dict.get(conn.group_out_id)
         gp_inout_in_dict = self._conns_inout_dict.get(conn.group_in_id)
-        
+
         if gp_outin_out_dict is None:
             self._conns_outin_dict[conn.group_out_id] = {
                 conn.group_in_id: {conn.connection_id: conn}}
@@ -512,7 +512,7 @@ class Canvas:
                 gp_outin_out_dict[conn.group_in_id][conn.connection_id] = conn
             else:
                 gp_outin_out_dict[conn.group_in_id] = {conn.connection_id: conn}
-        
+
         if gp_inout_in_dict is None:
             self._conns_inout_dict[conn.group_in_id] = {
                 conn.group_out_id: {conn.connection_id: conn}}
@@ -521,33 +521,33 @@ class Canvas:
                 gp_inout_in_dict[conn.group_out_id][conn.connection_id] = conn
             else:
                 gp_inout_in_dict[conn.group_out_id] = {conn.connection_id: conn}
-    
+
     def remove_group(self, group: GroupObject):
         self.group_list.remove(group)
         if group.group_id in self._groups_dict.keys():
             self._groups_dict.pop(group.group_id)
-        
+
         for widget in group.widgets:
             if widget in self._all_boxes:
                 self._all_boxes.remove(widget)
 
         if self._qobject is not None:
             self._qobject.rm_group_to_join(group.group_id)
-    
+
     def remove_port(self, port: PortObject):
         gp_dict = self._ports_dict.get(port.group_id)
         if gp_dict and port.port_id in gp_dict.keys():
             gp_dict.pop(port.port_id)
-    
+
     def remove_portgroup(self, portgrp: PortgrpObject):
         gp_dict = self._portgrps_dict.get(portgrp.group_id)
         if gp_dict and portgrp.portgrp_id in gp_dict.keys():
             gp_dict.pop(portgrp.portgrp_id)
-            
+
         for port in self.list_ports(group_id=portgrp.group_id):
             if port.port_id in portgrp.port_id_list:
                 port.portgrp = None
-    
+
     def remove_connection(self, conn: ConnectionObject):
         try:
             self._conns_dict.pop(conn.connection_id)
@@ -560,7 +560,7 @@ class Canvas:
 
     def get_group(self, group_id: int) -> Optional[GroupObject]:
         return self._groups_dict.get(group_id)
-    
+
     def get_port(self, group_id: int, port_id: int) -> Optional[PortObject]:
         gp = self._ports_dict.get(group_id)
         if gp is None:
@@ -592,10 +592,10 @@ class Canvas:
         work_dict = self._ports_dict.get(group_id)
         if work_dict is None:
             return
-        
+
         for port in work_dict.values():
             yield port
-            
+
     def list_portgroups(
             self, group_id: Optional[int]=None) -> Iterator[PortgrpObject]:
         if group_id is None:
@@ -603,11 +603,11 @@ class Canvas:
                 for portgrp in work_dict.values():
                     yield portgrp
             return
-        
+
         work_dict = self._portgrps_dict.get(group_id)
         if work_dict is None:
             return
-        
+
         for portgrp in work_dict.values():
             yield portgrp
 
@@ -623,23 +623,23 @@ class Canvas:
             for conn in self._conns_dict.values():
                 yield conn
             return
-        
+
         if len(connectables) > 2:
             return
-        
+
         port_out_ids, port_in_ids = tuple[int](), tuple[int]()
-        
+
         # check infos from connectables (port/portgroup)
         if len(connectables) == 2:
             if (connectables[0].port_mode
                     is not connectables[1].port_mode.opposite()):
                 return
-            
+
             if connectables[0].port_mode is PortMode.OUTPUT:
                 connectable_out, connectable_in = connectables
             else:
                 connectable_in, connectable_out = connectables
-            
+
             group_out_id = connectable_out.group_id
             group_in_id = connectable_in.group_id
             port_out_ids = connectable_out.get_port_ids()
@@ -670,7 +670,7 @@ class Canvas:
                 for gp_out_in in gp_out.values():
                     for conn in gp_out_in.values():
                         yield conn
-        
+
             gp_in = self._conns_inout_dict.get(group_id)
             if gp_in is not None:
                 for gp_id, gp_in_out in gp_in.items():
@@ -680,24 +680,24 @@ class Canvas:
                     for conn in gp_in_out.values():
                         yield conn
             return
-        
+
         # here we are sure we have group_out_id or group_in_id filter(s)
         if group_out_id is not None:
             gp_out = self._conns_outin_dict.get(group_out_id)
             if gp_out is None:
                 return
-            
+
             if group_in_id is not None:
                 gp_in = gp_out.get(group_in_id)
                 if gp_in is None:
                     return
-                
+
                 for conn in gp_in.values():
                     if ((not port_out_ids or conn.port_out_id in port_out_ids)
                             and (not port_in_ids or conn.port_in_id in port_in_ids)):
                         yield conn
                 return
-            
+
             for gp_in in gp_out.values():
                 for conn in gp_in.values():
                     if not port_out_ids or conn.port_out_id in port_out_ids:
@@ -708,7 +708,7 @@ class Canvas:
         gp_in = self._conns_inout_dict.get(group_in_id)
         if gp_in is None:
             return
-        
+
         for gp_out in gp_in.values():
             for conn in gp_out.values():
                 if not port_in_ids or conn.port_in_id in port_in_ids:
@@ -717,15 +717,15 @@ class Canvas:
     def set_aliasing_reason(
             self, aliasing_reason: AliasingReason, yesno: bool):
         is_aliasing = bool(self.aliasing_reason)
-        
+
         if yesno:
             self.aliasing_reason |= aliasing_reason
         else:
             self.aliasing_reason &= ~aliasing_reason
-        
+
         if bool(self.aliasing_reason) is is_aliasing:
             return
-        
+
         if self._scene is not None:
             self._scene.set_anti_aliasing(not bool(self.aliasing_reason))
 

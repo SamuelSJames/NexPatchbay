@@ -35,13 +35,13 @@ def is_dark_theme(widget: QWidget) -> bool:
 
 class JackAgnostic(Enum):
     'Enum used by Patchichi to set what is displayed'
-    
+
     NONE = 0
     'Not JACK agnostic, used by Patchance and RaySession'
-    
+
     DUMMY = 1
     'JACK agnostic in reality, but display all widgets'
-    
+
     FULL = 2
     'Hide all widgets related to JACK'
 
@@ -51,7 +51,7 @@ class TextWithIcons(Enum):
     AUTO = 1
     YES = 2
 
-    @classmethod    
+    @classmethod
     def by_name(cls, name: str) -> 'TextWithIcons':
         if name == 'NO':
             return cls.NO
@@ -71,13 +71,13 @@ class PatchbayToolsWidget(QObject):
     def __init__(self):
         QObject.__init__(self)
         self._jack_running = True
-        
+
         self.mng: 'Optional[PatchbayManager]' = None
 
         self.no_text_with_icons_act = False
 
         self._jack_agnostic = JackAgnostic.NONE
-        
+
         self._tools_displayed = ToolDisplayed.ALL
         self.tbars : Optional[tuple[PatchbayToolBar, ...]] = None
         self._last_layout = ''
@@ -86,7 +86,7 @@ class PatchbayToolsWidget(QObject):
         self._transport_wg: Optional[BarWidgetTransport] = None
         self._jack_wg: Optional[BarWidgetJack] = None
         self._canvas_wg: Optional[BarWidgetCanvas] = None
-        
+
         self._last_win_width = 0
         self._main_bar_little_width = 0
         self._main_bar_large_width = 0
@@ -140,7 +140,7 @@ class PatchbayToolsWidget(QObject):
             self, context_actions: dict[ToolDisplayed, QAction]) -> QMenu:
         menu = QMenu()
         menu.addSection(_translate('tool_bar', 'Displayed tools'))
-        
+
         for key, act in context_actions.items():
             act.setCheckable(True)
             act.setChecked(bool(self._tools_displayed & key))
@@ -154,7 +154,7 @@ class PatchbayToolsWidget(QObject):
                         act.setEnabled(self.mng.alsa_midi_enabled)
                     else:
                         act.setEnabled(False)
-            
+
             if self._jack_agnostic is JackAgnostic.FULL:
                 if key in (ToolDisplayed.TRANSPORT_CLOCK,
                            ToolDisplayed.TRANSPORT_PLAY_STOP,
@@ -165,12 +165,12 @@ class PatchbayToolsWidget(QObject):
                            ToolDisplayed.XRUNS,
                            ToolDisplayed.DSP_LOAD):
                     continue
-            
+
             menu.addAction(act)
-            
+
             if key is ToolDisplayed.ZOOM_SLIDER:
                 menu.addSeparator()
-        
+
         return menu
 
     def set_patchbay_manager(self, mng: 'PatchbayManager'):
@@ -181,7 +181,7 @@ class PatchbayToolsWidget(QObject):
             self._transport_wg.set_patchbay_manager(mng)
         if self._jack_wg is not None:
             self._jack_wg.set_patchbay_manager(mng)
-    
+
     def set_tool_bars(self, *tool_bars: 'PatchbayToolBar'):
         self.tbars = tool_bars
 
@@ -203,7 +203,7 @@ class PatchbayToolsWidget(QObject):
             self._main_bar_large_width = main_bar.sizeHint().width()
             main_bar.setToolButtonStyle(tool_button_style)
 
-        self.tbars[TBar.TRANSPORT].addWidget(self._transport_wg)        
+        self.tbars[TBar.TRANSPORT].addWidget(self._transport_wg)
         self.tbars[TBar.JACK].addWidget(self._jack_wg)
         self.tbars[TBar.CANVAS].addWidget(self._canvas_wg)
 
@@ -211,30 +211,30 @@ class PatchbayToolsWidget(QObject):
             tbar.toggleViewAction().setEnabled(False)
             tbar.toggleViewAction().setVisible(False)
             tbar.menu_asked.connect(self._menu_asked)
-    
+
     def change_text_with_icons(self, text_with_icons: TextWithIcons):
         if text_with_icons is self._text_with_icons:
             return
-        
+
         self._text_with_icons = text_with_icons
         if self.tbars is None:
             return
 
         main_bar = self.tbars[TBar.MAIN]
-        
+
         main_bar.setToolButtonStyle(Qt.ToolButtonStyle.ToolButtonIconOnly)
         self._main_bar_little_width = main_bar.sizeHint().width()
-        
+
         main_bar.setToolButtonStyle(Qt.ToolButtonStyle.ToolButtonTextBesideIcon)
         self._main_bar_large_width = main_bar.sizeHint().width()
-        
+
         self._resize_later()
-    
+
     @Slot(QPoint)
     def _menu_asked(self, point: QPoint):
         context_actions = self._make_context_actions()
         menu = self._make_context_menu(context_actions)
-        
+
         act_text_with_icons = QAction(
             QIcon.fromTheme('format-text-direction-symbolic'),
             _translate('tool_bar', 'Display text beside icons'))
@@ -245,7 +245,7 @@ class PatchbayToolsWidget(QObject):
         if not self.no_text_with_icons_act:
             menu.addSeparator()
             menu.addAction(act_text_with_icons)
-        
+
         selected_act = menu.exec(point)
         if selected_act is None:
             return
@@ -262,24 +262,24 @@ class PatchbayToolsWidget(QObject):
                     self._tools_displayed |= key
                 else:
                     self._tools_displayed &= ~key
-                    
+
         self.change_tools_displayed(self._tools_displayed)
-    
+
     def set_jack_agnostic(self, agnostic: JackAgnostic):
         '''Use without any jack tool. Used by Patchichi.'''
         self._jack_agnostic = agnostic
         self.change_tools_displayed(self._tools_displayed)
-    
-    def change_tools_displayed(self, tools_displayed: ToolDisplayed):        
+
+    def change_tools_displayed(self, tools_displayed: ToolDisplayed):
         self._tools_displayed = tools_displayed
-        
+
         if (self._jack_agnostic is not JackAgnostic.FULL
                 and not self._jack_running):
             if self.mng is not None:
                 self.set_jack_running(
                     False, use_alsa_midi=self.mng.alsa_midi_enabled)
             return
-        
+
         if self.tbars is None:
             return
 
@@ -288,7 +288,7 @@ class PatchbayToolsWidget(QObject):
 
         if self._transport_wg is not None:
             self._transport_wg.change_tools_displayed(tools_displayed)
-            
+
         if self._jack_wg is not None:
             self._jack_wg.change_tools_displayed(tools_displayed)
 
@@ -297,13 +297,13 @@ class PatchbayToolsWidget(QObject):
                 self._jack_wg.setVisible(False)
             if self._transport_wg is not None:
                 self._transport_wg.setVisible(False)
-            
+
         elif self._jack_agnostic is JackAgnostic.DUMMY:
             if self._jack_wg is not None:
                 self._jack_wg.set_jack_running(True)
                 self._jack_wg.set_dsp_load(2)
 
-        QTimer.singleShot(0, self._resize_later)        
+        QTimer.singleShot(0, self._resize_later)
 
     @Slot()
     def _resize_later(self):
@@ -313,7 +313,7 @@ class PatchbayToolsWidget(QObject):
     def set_samplerate(self, samplerate: int):
         if self._jack_wg is not None:
             self._jack_wg.set_samplerate(samplerate)
-        
+
         if self._transport_wg is not None:
             self._transport_wg.set_samplerate(samplerate)
 
@@ -351,7 +351,7 @@ class PatchbayToolsWidget(QObject):
             self._transport_wg.set_jack_running(yesno)
         if self._jack_wg is not None:
             self._jack_wg.set_jack_running(yesno)
-        
+
         if yesno:
             self.change_tools_displayed(self._tools_displayed)
 
@@ -365,13 +365,13 @@ class PatchbayToolsWidget(QObject):
             self, width: int, text_icons=TextWithIcons.AUTO) -> str:
         if self.tbars is None:
             return ''
-        
+
         tbar_widths = [b.needed_width() for b in self.tbars]
         if text_icons is TextWithIcons.NO:
             tbar_widths[TBar.MAIN] = self._main_bar_little_width
         elif text_icons is TextWithIcons.YES:
             tbar_widths[TBar.MAIN] = self._main_bar_large_width
-        
+
         m, t, j, c = tbar_widths
         # Main, Transport, Jack, Canvas
         # '_' for toolbarBreak (new line)
@@ -380,35 +380,35 @@ class PatchbayToolsWidget(QObject):
             if width >= m + c:
                 return 'MC'
             return 'M_C'
-        
+
         if width >= sum(tbar_widths):
             return 'MCTJ'
 
         if width >= m + t + j:
             return 'MTJ_C'
-        
+
         if width >= m + j:
             if width >= t + c:
                 return 'MJ_CT'
             return 'MJ_T_C'
-        
+
         if width >= c + t + j:
             return 'M_TJC'
-        
+
         if width >= t + j:
             return 'M_TJ_C'
-        
+
         if width >= t + c:
             return 'M_J_CT'
-        
+
         return 'M_J_T_C'
 
     def main_win_resize(self, main_win: QMainWindow):
         if self.tbars is None:
             return
-        
+
         self._last_win_width = main_win.width()
-        
+
         if self._text_with_icons is TextWithIcons.AUTO:
             layout_little = self._get_toolbars_layout(
                 self._last_win_width, TextWithIcons.NO)
@@ -438,26 +438,26 @@ class PatchbayToolsWidget(QObject):
                 self.tbars[TBar.MAIN].setToolButtonStyle(
                     Qt.ToolButtonStyle.ToolButtonTextBesideIcon)
             layout = self._get_toolbars_layout(self._last_win_width)
-        
+
         else:
             self.tbars[TBar.MAIN].setToolButtonStyle(
                 Qt.ToolButtonStyle.ToolButtonIconOnly)
             layout = self._get_toolbars_layout(self._last_win_width)
-            
+
 
         if (layout == self._last_layout):
             self._arrange_tool_bars()
             return
-        
+
         self._last_layout = layout
-        
+
         # add/remove spacer at right of canvas bar widget
         if self._canvas_wg is not None:
             self._canvas_wg.set_at_end_of_line(
                 self._canvas_is_last_of_line(self._last_layout))
-        
+
         self._arrange_tool_bars()
-        
+
         visibles = [t.isVisible() for t in self.tbars]
         if (self._first_resize_done
                 and visibles == [False, False, False, False]):
@@ -465,12 +465,12 @@ class PatchbayToolsWidget(QObject):
 
         for toolbar in self.tbars:
             main_win.removeToolBar(toolbar)
-        
+
         letter_bar = {'M': TBar.MAIN,
-                      'T': TBar.TRANSPORT, 
+                      'T': TBar.TRANSPORT,
                       'C': TBar.CANVAS,
                       'J': TBar.JACK}
-        
+
         for letter in layout:
             if letter == '_':
                 main_win.addToolBarBreak()
@@ -483,7 +483,7 @@ class PatchbayToolsWidget(QObject):
                 continue
 
             self.tbars[i].setVisible(True)
-        
+
         self._first_resize_done = True
 
     def _arrange_tool_bars(self):
@@ -492,7 +492,7 @@ class PatchbayToolsWidget(QObject):
         tbar_widths = [b.needed_width() for b in self.tbars]
         m, t, j, c = tbar_widths
 
-        if self._last_layout in ('MCTJ', 'M_CTJ', 'MJ_CT'):            
+        if self._last_layout in ('MCTJ', 'M_CTJ', 'MJ_CT'):
             diff = self._last_win_width - t - c
             if self._last_layout in ('MCTJ', 'M_CTJ'):
                 diff -= j
@@ -504,12 +504,12 @@ class PatchbayToolsWidget(QObject):
             else:
                 for tbar in self.tbars:
                     tbar.set_min_width(None)
-                    
+
         elif self._last_layout in ('MTJ_C', 'M_TJ_C'):
             diff = self._last_win_width - t - j
             if self._last_layout == 'MTJ_C':
                 diff -= m
-            
+
             if diff > 0:
                 self.tbars[TBar.TRANSPORT].set_min_width(t + diff)
             else:
@@ -519,5 +519,4 @@ class PatchbayToolsWidget(QObject):
         else:
             for tbar in self.tbars:
                 tbar.set_min_width(None)
-        
-        
+

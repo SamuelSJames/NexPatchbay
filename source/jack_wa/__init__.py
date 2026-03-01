@@ -15,14 +15,14 @@ def _list_ports(client: jack.Client, names) -> Iterator[jack.Port]:
     while True:
         name = names[idx]
         idx += 1
-        
+
         if not name:
             break
-        
+
         port_ptr = jack._lib.jack_port_by_name(client._ptr, name)
         if not port_ptr:
             continue
-        
+
         try:
             port = client._wrap_port_ptr(port_ptr)
         except jack.JackError:
@@ -37,9 +37,9 @@ def list_ports(client: jack.Client) -> Iterator[jack.Port]:
     names = jack._ffi.gc(jack._lib.jack_get_ports(
         client._ptr, b'', b'', 0x00),
         jack._lib.jack_free)
-    
+
     yield from _list_ports(client, names)
-        
+
 def list_all_connections(
         client: jack.Client, port: jack.Port) -> Iterator[jack.Port]:
     '''workaround for `jack.Client.get_all_connections(port)`.
@@ -48,7 +48,7 @@ def list_all_connections(
     names = jack._ffi.gc(
         jack._lib.jack_port_get_all_connections(client._ptr, port._ptr),
         jack._lib.jack_free)
-    
+
     yield from _list_ports(client, names)
 
 def set_port_registration_callback(

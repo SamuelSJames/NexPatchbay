@@ -6,31 +6,31 @@ from qtpy.QtCore import QObject, Signal # type:ignore
 class SignalsObject(QObject):
     out_thread_order = Signal()
     to_main_thread = Signal(object, tuple, dict)
-    
+
     view_changed = Signal(int)
     'emitted when the current view has changed [int]'
-    
+
     views_changed = Signal()
     '''emitted when something related to views changed
     (view added, renamed, removed...)'''
-    
+
     port_types_view_changed = Signal(int)
     'emitted when port types view filter changed the view [int]'
-    
+
     hidden_boxes_changed = Signal()
     'emitted when list of hidden boxes has changed'
-    
+
     animation_finished = Signal()
     'emitted when a canvas animation is finished'
-    
+
     group_added = Signal(int)
     '''emitted when a group is added by a port.
     Used only by hiddens indicator. [group_id]'''
-    
+
     group_removed = Signal(int)
     '''emitted when a group is removed
     with the deletion of its last port. [group_id]'''
-    
+
     all_groups_removed = Signal()
     'emitted when all groups are removed.'
 
@@ -51,11 +51,11 @@ class SignalsObject(QObject):
     elastic_changed = Signal(int)
     borders_nav_changed = Signal(int)
     prevent_overlap_changed = Signal(int)
-    
+
     max_port_width_changed = Signal(int)
     default_zoom_changed = Signal(int)
     scene_scale_changed = Signal(float)
-    
+
     connection_added = Signal(int)
     connection_removed = Signal(int)
     patch_may_have_changed = Signal()

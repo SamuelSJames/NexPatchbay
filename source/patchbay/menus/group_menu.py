@@ -26,21 +26,21 @@ class DisconnectMenu(QMenu):
         self._mng = mng
         self._group = group
         self._port_mode = port_mode
-        
+
         self.setTitle(_translate('patchbay', 'Disconnect'))
-        
+
         self._fill_menu()
-    
+
     def _fill_menu(self):
         out_groups = set[Group]()
         in_groups = set[Group]()
-        
+
         if self._port_mode & PortMode.OUTPUT:
             for conn in self._mng.connections:
                 if (conn.port_out.group_id is self._group.group_id
                         and conn.in_canvas):
                     in_groups.add(conn.port_in.group)
-                    
+
         if self._port_mode & PortMode.INPUT:
             for conn in self._mng.connections:
                 if (conn.port_in.group_id is self._group.group_id
@@ -77,7 +77,7 @@ class DisconnectMenu(QMenu):
                         group.cnv_box_type, group.cnv_icon_name,
                         PortMode.OUTPUT, dark=use_dark_icon))
                 group_act_out.triggered.connect(self._apply_disconnections)
-            
+
             elif group in out_groups:
                 group_act = self.addAction(group.cnv_name)
                 group_act.setData((PortMode.OUTPUT, group))
@@ -86,7 +86,7 @@ class DisconnectMenu(QMenu):
                         group.cnv_box_type, group.cnv_icon_name,
                         PortMode.OUTPUT, dark=use_dark_icon))
                 group_act.triggered.connect(self._apply_disconnections)
-            
+
             elif group in in_groups:
                 group_act = self.addAction(group.cnv_name)
                 group_act.setData((PortMode.INPUT, group))
@@ -95,19 +95,19 @@ class DisconnectMenu(QMenu):
                         group.cnv_box_type, group.cnv_icon_name,
                         PortMode.INPUT, dark=use_dark_icon))
                 group_act.triggered.connect(self._apply_disconnections)
-                
+
     @Slot()
     def _apply_disconnections(self):
         data : tuple[PortMode, Group] = self.sender().data() # type:ignore
         port_mode, group = data
-        
+
         if port_mode is PortMode.INPUT:
             for conn in self._mng.connections:
                 if (conn.port_out.group_id is self._group.group_id
                         and conn.port_in.group_id is group.group_id
                         and conn.in_canvas):
                     canvas.cb.ports_disconnect(conn.connection_id)
-                    
+
         elif port_mode is PortMode.OUTPUT:
             for conn in self._mng.connections:
                 if (conn.port_in.group_id is self._group.group_id
@@ -126,14 +126,14 @@ class GroupMenu(QMenu):
 
     def _build(self):
         dark = '-dark' if utils.is_dark_theme(self) else ''
-        
+
         self._disconnect_menu = DisconnectMenu(
             self._mng, self._group, self._port_mode)
         self._disconnect_menu.setIcon(
             QIcon(QPixmap(':scalable/breeze%s/lines-disconnector' % dark)))
-        
+
         self.addMenu(self._disconnect_menu)
-        
+
         disco_all_act = self.addAction(_translate('patchbay', 'Disconnect All'))
         disco_all_act.setIcon(
             QIcon(QPixmap(':scalable/breeze%s/lines-disconnector' % dark)))
@@ -164,7 +164,7 @@ class GroupMenu(QMenu):
 
         box_pos = self._group.current_position.boxes[self._port_mode]
         self._is_wrapped = box_pos.is_wrapped()
-        
+
         wrap_title = _translate('patchbay', 'Wrap')
         wrap_icon = QIcon.fromTheme('pan-up-symbolic')
 
@@ -175,31 +175,31 @@ class GroupMenu(QMenu):
         wrap_act = self.addAction(wrap_title)
         wrap_act.setIcon(wrap_icon)
 
-        # layout mode entries        
+        # layout mode entries
         auto_layout_act = self.addAction(
             _translate('patchbay', 'Automatic layout'))
         auto_layout_act.setIcon(QIcon.fromTheme('auto-scale-x'))
         auto_layout_act.setVisible(
             self._group.current_position.boxes[self._port_mode].layout_mode
             is not BoxLayoutMode.AUTO)
-        
+
         change_layout_act = self.addAction(
             _translate('patchbay', 'Change layout'))
         change_layout_act.setIcon(QIcon.fromTheme('view-split-left-right'))
-        
+
         # entry 'hide the box'
         hide_box_act = self.addAction(
             _translate('patchbay', 'Hide'))
         hide_box_act.setIcon(QIcon.fromTheme('hide_table_row'))
-        
+
         rename_act = self.addAction(
             _translate('patchbay', 'Rename'))
         rename_act.setIcon(QIcon.fromTheme('edit-rename'))
-        
+
         get_info_act = self.addAction(
             _translate('patchbay', 'Get &Info'))
         get_info_act.setIcon(QIcon.fromTheme('dialog-information'))
-        
+
         disco_all_act.triggered.connect(self._disconnect_all)
         wrap_act.triggered.connect(self._wrap)
         auto_layout_act.triggered.connect(self._auto_layout)
@@ -207,20 +207,20 @@ class GroupMenu(QMenu):
         hide_box_act.triggered.connect(self._hide_box)
         rename_act.triggered.connect(self._rename)
         get_info_act.triggered.connect(self._get_info)
-    
+
     def _disconnect_all(self):
         if self._port_mode & PortMode.OUTPUT:
             for conn in self._mng.connections:
                 if (conn.port_out.group_id is self._group.group_id
                         and conn.in_canvas):
                     canvas.cb.ports_disconnect(conn.connection_id)
-                    
+
         if self._port_mode & PortMode.INPUT:
             for conn in self._mng.connections:
                 if (conn.port_in.group_id is self._group.group_id
                         and conn.in_canvas):
                     canvas.cb.ports_disconnect(conn.connection_id)
-    
+
     @Slot()
     def _join(self):
         with CancellableAction(self._mng, CancelOp.VIEW) as a:
@@ -235,8 +235,8 @@ class GroupMenu(QMenu):
 
             patchcanvas.move_group_boxes(self._group.group_id, gpos)
             patchcanvas.repulse_from_group(self._group.group_id, PortMode.BOTH)
-    
-    @Slot()  
+
+    @Slot()
     def _split(self):
         with CancellableAction(self._mng, CancelOp.VIEW) as a:
             a.name = _translate('undo', 'Split "%s"') % self._group.cnv_name
@@ -246,56 +246,56 @@ class GroupMenu(QMenu):
     def _wrap(self):
         canvas.cb.group_wrap(
             self._group.group_id, self._port_mode, not self._is_wrapped)
-        
+
     @Slot()
     def _auto_layout(self):
         with CancellableAction(self._mng, CancelOp.VIEW) as a:
             a.name = _translate('undo', 'Set auto layout for "%s"') \
                 % self._group.cnv_name
             self._group.set_layout_mode(self._port_mode, BoxLayoutMode.AUTO)
-        
+
     @Slot()
     def _change_layout(self):
         current_layout = patchcanvas.get_box_true_layout(
             self._group.group_id, self._port_mode)
-        
+
         if current_layout is BoxLayoutMode.HIGH:
             next_layout = BoxLayoutMode.LARGE
         elif current_layout is BoxLayoutMode.LARGE:
             next_layout = BoxLayoutMode.HIGH
         else:
             next_layout = BoxLayoutMode.AUTO
-        
+
         with CancellableAction(self._mng, CancelOp.VIEW) as a:
             a.name = _translate('undo', 'Set "%s" layout to %s') \
                 % (self._group.cnv_name, next_layout.name)
             self._group.set_layout_mode(self._port_mode, next_layout)
-    
+
     @Slot()
     def _hide_box(self):
         with CancellableAction(self._mng, CancelOp.VIEW) as a:
             a.name = _translate('undo', 'Hide "%s"') \
                 % self._group.cnv_name
             self._group.hide(self._port_mode)
-            
+
     @Slot()
-    def _rename(self):        
+    def _rename(self):
         dialog = CustomNameDialog(self._group)
         if not dialog.exec():
             return
-        
+
         pretty_name = dialog.pretty_name()
         save_in_jack = dialog.save_in_metadata()
-        
+
         self._mng.custom_names.save_group(
             self._group.name, pretty_name, self._group.mdata_pretty_name)
         self._mng.pretty_diff_checker.client_pretty_name_changed(
             self._group.name)
         self._group.rename_in_canvas()
-        
+
         canvas.cb.group_rename(
             self._group.group_id, pretty_name, save_in_jack)
-        
+
     @Slot()
     def _get_info(self):
         dialog = GroupInfoDialog(self._mng.main_win, self._group)

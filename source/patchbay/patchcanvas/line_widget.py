@@ -56,14 +56,14 @@ class LineWidget(QGraphicsPathItem):
 
         # is true when the connection will be undo by user if (s)he
         # leaves the mouse button
-        self.ready_to_disc = False        
+        self.ready_to_disc = False
 
         self._item1 = item1
         self._item2 = item2
         self._connection_id = connection_id
 
         self._semi_hidden = False
-        
+
         self._th_attribs = dict[_ThemeState, _ThemeAttributes]()
         self.update_theme()
 
@@ -85,7 +85,7 @@ class LineWidget(QGraphicsPathItem):
         item1_con_pos = self._item1.connect_pos()
         item1_x = item1_con_pos.x()
         item1_y = item1_con_pos.y()
-        
+
         item2_con_pos = self._item2.connect_pos()
         item2_x = item2_con_pos.x()
         item2_y = item2_con_pos.y()
@@ -104,7 +104,7 @@ class LineWidget(QGraphicsPathItem):
 
     def update_theme(self):
         port_type1 = self._item1.get_port_type()
-        
+
         for theme_state in _ThemeState:
             if theme_state is _ThemeState.DISCONNECTING:
                 theme = canvas.theme.line.disconnecting
@@ -129,7 +129,7 @@ class LineWidget(QGraphicsPathItem):
             if tha.color_alter is None:
                 tha.color_alter = tha.color_main
             tha.base_width = tha.base_pen.widthF() + 0.000001
-            self._th_attribs[theme_state] = tha            
+            self._th_attribs[theme_state] = tha
 
     def update_line_gradient(self):
         pos_top = self.boundingRect().top()
@@ -141,9 +141,9 @@ class LineWidget(QGraphicsPathItem):
             tha = self._th_attribs[_ThemeState.SELECTED]
         else:
             tha = self._th_attribs[_ThemeState.NORMAL]
-        
+
         has_gradient = bool(tha.color_main != tha.color_alter)
-        
+
         if has_gradient:
             port_gradient = QLinearGradient(0, pos_top, 0, pos_bot)
 
@@ -153,30 +153,30 @@ class LineWidget(QGraphicsPathItem):
             else:
                 if tha.color_alter is None:
                     raise Exception
-                
+
                 if self._semi_hidden:
                     shd = options.semi_hide_opacity
                     bgcolor = canvas.theme.scene_background_color
-                    
+
                     color_main = QColor(
                         int(tha.color_main.red() * shd + bgcolor.red() * (1.0 - shd) + 0.5),
                         int(tha.color_main.green() * shd + bgcolor.green() * (1.0 - shd)+ 0.5),
                         int(tha.color_main.blue() * shd + bgcolor.blue() * (1.0 - shd) + 0.5),
                         tha.color_main.alpha())
-                    
+
                     color_alter = QColor(
                         int(tha.color_alter.red() * shd + bgcolor.red() * (1.0 - shd) + 0.5),
                         int(tha.color_alter.green() * shd + bgcolor.green() * (1.0 - shd)+ 0.5),
                         int(tha.color_alter.blue() * shd + bgcolor.blue() * (1.0 - shd) + 0.5),
                         tha.color_alter.alpha())
-                
+
                 else:
                     color_main, color_alter = tha.color_main, tha.color_alter
 
                 port_gradient.setColorAt(0.0, color_main)
                 port_gradient.setColorAt(0.5, color_alter)
                 port_gradient.setColorAt(1.0, color_main)
-            
+
             self.setPen(QPen(port_gradient, tha.base_width, Qt.PenStyle.SolidLine, Qt.PenCapStyle.FlatCap))
         else:
             if self._semi_hidden:
@@ -190,7 +190,7 @@ class LineWidget(QGraphicsPathItem):
                     tha.color_main.alpha())
             else:
                 color_main = tha.color_main
-        
+
             pen = QPen(QBrush(color_main), tha.base_width, Qt.PenStyle.SolidLine, Qt.PenCapStyle.FlatCap)
             pen.setCosmetic(True)
             self.setPen(pen)

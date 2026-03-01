@@ -13,7 +13,7 @@ class CustomScrollBar(QScrollBar):
         super().mouseMoveEvent(event)
         canvas.qobject.start_aliasing_check(
             AliasingReason.SCROLL_BAR_MOVE)
-        
+
     def mouseReleaseEvent(self, event) -> None:
         super().mouseReleaseEvent(event)
         canvas.set_aliasing_reason(AliasingReason.SCROLL_BAR_MOVE, False)
@@ -30,7 +30,7 @@ class PatchGraphicsView(QGraphicsView):
         self.setOptimizationFlag(
             QGraphicsView.OptimizationFlag.DontSavePainterState, True)
         self.setRenderHint(QPainter.RenderHint.Antialiasing, True)
-        
+
         self._h_scroll_bar = CustomScrollBar(Qt.Orientation.Horizontal, self)
         self.setHorizontalScrollBar(self._h_scroll_bar)
         self._v_scroll_bar = CustomScrollBar(Qt.Orientation.Vertical, self)
@@ -60,7 +60,7 @@ class PatchGraphicsView(QGraphicsView):
 
         self._panning = False
         self.setDragMode(QGraphicsView.DragMode.NoDrag)
-        
+
     def wheelEvent(self, ev: QWheelEvent) -> None:
         if (ev.modifiers() & Qt.KeyboardModifier.ShiftModifier
                 or (not ev.modifiers() & Qt.KeyboardModifier.AltModifier

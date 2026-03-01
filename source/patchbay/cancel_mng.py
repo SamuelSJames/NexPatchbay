@@ -5,7 +5,7 @@ from typing import TYPE_CHECKING, Callable, Optional
 from patshared import ViewData, ViewsDictEnsureOne, PortTypesViewFlag
 
 if TYPE_CHECKING:
-    from patchbay_manager import PatchbayManager    
+    from patchbay_manager import PatchbayManager
 
 
 _logger = logging.getLogger(__name__)
@@ -14,18 +14,18 @@ _logger = logging.getLogger(__name__)
 class CancelOp(Enum):
     PTV_CHOICE = auto()
     'Save the port types view choice only'
-    
+
     VIEW_CHOICE = auto()
     'save the view choice only'
-    
+
     VIEW = auto()
     'save all the current view'
-    
+
     ALL_VIEWS = auto()
     'save all the views'
-    
+
     ALL_VIEWS_NO_POS = auto()
-    'save all the views, without group positions'    
+    'save all the views, without group positions'
 
 
 class ActionRestorer:
@@ -67,52 +67,52 @@ class CancelMng:
         self.mng = mng
         self.actions = list[ActionRestorer]()
         self.canceled_acts = list[ActionRestorer]()
-        
+
         self.new_pos_created = False
         '''In VIEW_CHOICE action, GroupPos can be be created in a view
         , in this case, cancel_mng considers finally this action
         as ALL_VIEWS.'''
-        
+
         self._recording = False
 
     def prepare(self, op_type: CancelOp):
         if self._recording:
             raise RecursionError
-        
+
         self.new_pos_created = False
         self._recording = True
-        
+
         action = ActionRestorer(op_type)
         action.view_num_bef = self.mng.view_number
-        
-        match op_type:           
+
+        match op_type:
             case CancelOp.VIEW|CancelOp.PTV_CHOICE:
                 action.view_data_bef = self.mng.view().copy()
                 if op_type is CancelOp.PTV_CHOICE:
                     action.ptv_bef = self.mng.port_types_view
-                
+
             case CancelOp.VIEW_CHOICE|CancelOp.ALL_VIEWS:
                 action.views_bef = self.mng.views.copy()
-                
+
             case CancelOp.ALL_VIEWS_NO_POS:
                 action.views_bef = self.mng.views.copy(with_positions=False)
 
         self.actions.append(action)
         self.canceled_acts.clear()
         return action
-            
+
     def post_prepare(self, op_type: CancelOp):
         self._recording = False
-        
+
         if not self.actions:
             # should not happen, prepare has just added an action
             return
-        
+
         action = self.actions[-1]
         if not action.type is op_type:
             # should not happen, for the same reason
             return
-        
+
         match op_type:
             case CancelOp.VIEW_CHOICE:
                 if self.new_pos_created:
@@ -133,10 +133,10 @@ class CancelMng:
         match action.type:
             case CancelOp.VIEW:
                 action.view_data_aft = self.mng.view().copy()
-                
+
             case CancelOp.ALL_VIEWS:
                 action.views_aft = self.mng.views.copy()
-            
+
             case CancelOp.ALL_VIEWS_NO_POS:
                 action.views_aft = self.mng.views.copy(with_positions=False)
 
@@ -161,7 +161,7 @@ class CancelMng:
 
             case CancelOp.VIEW_CHOICE:
                 self.mng.change_view(action.view_num_bef)
-                
+
             case CancelOp.VIEW:
                 if action.view_data_bef is None:
                     _logger.error(f"action {action.name} has no view_data_bef")
@@ -185,9 +185,9 @@ class CancelMng:
                 self.mng.views.eat_views_dict_datas(action.views_bef)
                 self.mng.set_views_changed()
                 self.mng.change_view(action.view_num_bef)
-            
+
         self.mng.sg.undo_redo_changed.emit()
-        
+
     def redo(self):
         if not self.canceled_acts:
             return
@@ -230,4 +230,3 @@ class CancelMng:
         self.canceled_acts.clear()
         self.mng.sg.undo_redo_changed.emit()
 
-    

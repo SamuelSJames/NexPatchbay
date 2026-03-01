@@ -34,18 +34,18 @@ class GroupList:
 
     common: str
     "the common prefix for all groups inside 'list'"
-    
+
     list: 'list[Group|GroupList]|list[Group]'
     'contains the list of groups or group lists.'
-    
+
     def __init__(self, common: str,
                  group_list: 'list[Group|GroupList]|list[Group]'):
         self.common = common
         self.list = group_list
-    
+
     def __repr__(self) -> str:
         return f'GroupList("{self.common}", {len(self.list)})'
-    
+
     def walk(self) -> Iterator[tuple[list[str], Group]]:
         for group_or_list in self.list:
             if isinstance(group_or_list, Group):
@@ -62,22 +62,22 @@ def common_prefix(*strings: str) -> str:
         letter_set = set([s[i] for s in strings])
         if len(letter_set) > 1:
             return common
-        
+
         common += letter_set.pop()
-        
+
     return common
 
 def divide_group_list(group_list: GroupList) -> GroupList:
-    '''recursive function. 
+    '''recursive function.
     Divide a group list depending on the number of elements'''
     if len(group_list.list) <= MENU_MAX:
         return group_list
 
-    # At this stage group_list.list only contains groups 
+    # At this stage group_list.list only contains groups
     groups = list[Group | GroupList]()
     common_str = group_list.common
     common_min = len(group_list.common)
-    
+
     for group in group_list.list:
         if TYPE_CHECKING:
             assert isinstance(group, Group)
@@ -85,7 +85,7 @@ def divide_group_list(group_list: GroupList) -> GroupList:
             common_str = group.name
             groups.append(GroupList(common_str, [group]))
             continue
-        
+
         if TYPE_CHECKING:
             assert isinstance(groups[-1], GroupList)
 
@@ -101,7 +101,7 @@ def divide_group_list(group_list: GroupList) -> GroupList:
                 last_group_list: GroupList = groups.pop(-1) # type:ignore
                 for gp in last_group_list.list:
                     groups.append(gp)
-            
+
             common_str = group.name
             groups.append(GroupList(common_str, [group]))
 
@@ -138,7 +138,7 @@ def divide_group_list(group_list: GroupList) -> GroupList:
                 new_groups_.append(gp_or_list)
         else:
             new_groups_.append(group_or_list)
-                    
+
     return GroupList(group_list.common, new_groups_)
 
 
@@ -146,10 +146,10 @@ class HiddensIndicator(QToolButton):
     '''Widget used to show the number of hidden boxes.
     Exists in the tool bar, or in the filter bar (Ctrl+F),
     with different behaviors.'''
-    
+
     def __init__(self, parent):
         super().__init__(parent)
-        
+
         self.mng: 'PatchbayManager' = None # type:ignore
         self._get_filter_text: Optional[Callable[[], str]] = None
         '''If this HiddensIndicator instance is used by filter frame,
@@ -160,17 +160,17 @@ class HiddensIndicator(QToolButton):
         self._blink_timer = QTimer()
         self._blink_timer.setInterval(400)
         self._blink_timer.timeout.connect(self._blink_timer_timeout)
-        
+
         self._BLINK_TIMES = 6
         self._blink_times_done = 0
-        
+
         dark = '-dark' if self._is_dark() else ''
 
         self._icon_normal = QIcon(QPixmap(f':scalable/breeze{dark}/hint.svg'))
         self._icon_orange = QIcon(QPixmap(f':scalable/breeze{dark}/hint_orange.svg'))
-        
+
         self.setIcon(self._icon_normal)
-        
+
         self._menu = QMenu()
         self._menu.aboutToShow.connect(self._build_menu)
         self.setMenu(self._menu)
@@ -188,34 +188,34 @@ class HiddensIndicator(QToolButton):
         self.mng.sg.group_added.connect(self._group_added)
         self.mng.sg.group_removed.connect(self._group_removed)
         self.mng.sg.all_groups_removed.connect(self._all_groups_removed)
-    
+
     def set_filter_text_callable(self, callable: Callable[[], str]):
         self._get_filter_text = callable
-    
+
     def set_count(self, count: int):
         self._count = count
         self.setText(str(count))
-    
+
     def get_count(self) -> int:
         return self._count
-    
+
     def add_one(self):
         self._count += 1
         self.setText(str(self._count))
         self._start_blink()
-    
+
     def _start_blink(self):
         if self._blink_timer.isActive():
             return
-        
+
         self.setIcon(self._icon_orange)
         self._blink_times_done = 1
         self._blink_timer.start()
-    
+
     def _stop_blink(self):
         self._blink_timer.stop()
         self.setIcon(self._icon_normal)
-    
+
     def _check_count(self):
         cg = len([g for g in self._list_hidden_groups()])
         pv_count = self._count
@@ -232,7 +232,7 @@ class HiddensIndicator(QToolButton):
 
         if cg > pv_count:
             self._start_blink()
-    
+
     @Slot()
     def _blink_timer_timeout(self):
         self._blink_times_done += 1
@@ -240,23 +240,23 @@ class HiddensIndicator(QToolButton):
             self.setIcon(self._icon_orange)
         else:
             self.setIcon(self._icon_normal)
-        
+
         if self._blink_times_done == self._BLINK_TIMES:
             self._blink_times_done = 0
             self._blink_timer.stop()
-    
+
     @Slot(int)
     def _view_changed(self, view_num: int):
         self._check_count()
-        
+
     @Slot(int)
     def _port_types_view_changed(self, port_types_flag: int):
         self._check_count()
-    
+
     @Slot()
     def _hidden_boxes_changed(self):
         self._check_count()
-    
+
     @Slot(int)
     def _group_added(self, group_id: int):
         group = self.mng.get_group_from_id(group_id)
@@ -272,25 +272,25 @@ class HiddensIndicator(QToolButton):
     @Slot(int)
     def _group_removed(self, group_id: int):
         self._check_count()
-        
+
     @Slot()
     def _all_groups_removed(self):
         self.set_count(0)
         self._stop_blink()
-    
+
     def _list_hidden_groups(self) -> Iterator[Group]:
         if self.mng is None:
             return
-        
+
         flt = ''
         if self._get_filter_text is not None:
             flt = self._get_filter_text()
-        
+
         for group in self.mng.groups:
             hpm = group.current_position.hidden_port_modes()
             if hpm is PortMode.NULL:
                 continue
-            
+
             if ((group.outs_ptv & self.mng.port_types_view
                         and PortMode.OUTPUT in hpm)
                     or (group.ins_ptv & self.mng.port_types_view
@@ -301,7 +301,7 @@ class HiddensIndicator(QToolButton):
                         yield group
                 else:
                     yield group
-    
+
     @Slot()
     def _build_menu(self):
         if self.mng is None:
@@ -309,16 +309,16 @@ class HiddensIndicator(QToolButton):
 
         menu = self.menu()
         menu.clear()
-        
-        dark = self._is_dark()        
+
+        dark = self._is_dark()
         groups = [g for g in self._list_hidden_groups()]
-        
+
         groups.sort(key=lambda x: x.name)
         group_list = divide_group_list(GroupList('', groups))
-        
+
         menus_dict = dict[tuple[str, ...], QMenu]()
         menus_dict[()] = menu
-        
+
         for paths, group in group_list.walk():
             mnu = menus_dict.get(tuple(paths))
             if mnu is None:
@@ -327,7 +327,7 @@ class HiddensIndicator(QToolButton):
                 while parent is None:
                     tmp_paths = tmp_paths[:-1]
                     parent = menus_dict.get(tuple(tmp_paths))
-                
+
                 while len(tmp_paths) < len(paths):
                     tmp_paths.append(paths[len(tmp_paths)])
                     mnu = QMenu(parent)
@@ -335,7 +335,7 @@ class HiddensIndicator(QToolButton):
                     parent.addMenu(mnu)
                     menus_dict[tuple(tmp_paths)] = mnu
                     parent = mnu
-            
+
             assert isinstance(mnu, QMenu)
             group_act = mnu.addAction(group.cnv_name)
             group_act.setIcon(utils.get_icon(
@@ -344,7 +344,7 @@ class HiddensIndicator(QToolButton):
                 dark=dark))
             group_act.setData(group.group_id)
             group_act.triggered.connect(self._menu_action_triggered)
-        
+
         self.set_count(len(groups))
 
         menu.addSeparator()
@@ -364,27 +364,27 @@ class HiddensIndicator(QToolButton):
         menu.addAction(white_list_act)
 
         menu.addSeparator()
-        
+
         show_all_act = QAction(menu)
         show_all_act.setText(
             _translate('hiddens_indicator', 'Display all boxes'))
         show_all_act.setIcon(QIcon.fromTheme('visibility'))
         show_all_act.setData(SHOW_ALL)
         menu.addAction(show_all_act)
-        
+
         hide_all_act = QAction(menu)
         hide_all_act.setText(
             _translate('hiddens_indicator', 'Hide all boxes'))
         hide_all_act.setIcon(QIcon.fromTheme('hint'))
         hide_all_act.setData(HIDE_ALL)
-        
+
         # Do not add this action for the moment,
         # even if it works.
         # This action seems to not take sense because
         # we can select boxes and put them in a new view
 
         # menu.addAction(hide_all_act)
-        
+
         for act in white_list_act, show_all_act, hide_all_act:
             act.triggered.connect(self._menu_action_triggered)
 
@@ -395,7 +395,7 @@ class HiddensIndicator(QToolButton):
                 act.setParent(None) # type:ignore
                 acts.append(act)
             acts.reverse()
-            
+
             menu.clear()
             for act in acts:
                 act.setParent(menu)
@@ -406,7 +406,7 @@ class HiddensIndicator(QToolButton):
         act: QAction = self.sender() # type:ignore
         act_data: int = act.data() # type:ignore
         act_text: str = act.text() # type:ignore
-        
+
         if act_data == WHITE_LIST:
             with CancellableAction(self.mng, CancelOp.VIEW) as a:
                 a.name = act_text
@@ -417,13 +417,13 @@ class HiddensIndicator(QToolButton):
                 self.mng.view().is_white_list = act.isChecked() # type:ignore
                 self.mng.set_views_changed()
             return
-        
+
         if act_data == SHOW_ALL:
             with CancellableAction(self.mng, CancelOp.VIEW) as a:
-                a.name = act_text               
+                a.name = act_text
                 self.mng.restore_all_group_hidden_sides()
             return
-        
+
         if act_data == HIDE_ALL:
             with CancellableAction(self.mng, CancelOp.VIEW) as a:
                 a.name = act_text

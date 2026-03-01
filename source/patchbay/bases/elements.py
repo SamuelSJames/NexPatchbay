@@ -49,12 +49,12 @@ class ToolDisplayed(IntFlag):
            | LATENCY
            | XRUNS
            | DSP_LOAD)
-    
+
     def to_save_string(self) -> str:
         '''return a string containing all flags names
         separated with pipe symbol.'''
         all_strs = list[str]()
-        
+
         for flag in ToolDisplayed:
             if flag is ToolDisplayed.ALL:
                 continue
@@ -63,15 +63,15 @@ class ToolDisplayed(IntFlag):
                 all_strs.append(flag.name)
             else:
                 all_strs.append('~' + flag.name)
-        
+
         return '|'.join(all_strs)
-    
+
     def filtered_by_string(self, string: str) -> 'ToolDisplayed':
         '''returns another ToolDisplayed with value filtered
            by string where string contains flags names separated with pipe symbol
            as given by to_save_string method.'''
         return_td = ToolDisplayed(self.value)
-        
+
         for disp_str in string.split('|'):
             delete = False
             if disp_str.startswith('~'):
@@ -125,5 +125,4 @@ class CanvasOptimizeIt:
             self.mng.optimize_operation(
                 False, auto_redraw=self._auto_redraw,
                 prevent_overlap=self._prevent_overlap)
-
 
