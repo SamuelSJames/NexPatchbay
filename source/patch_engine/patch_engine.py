@@ -74,7 +74,7 @@ class PatchEngine:
     jack_running = False
     alsa_mng: Optional['AlsaManager'] = None
     terminate = False
-    client = None
+    client: jack.Client | None = None
     samplerate = 48000
     buffer_size = 1024
 
@@ -216,6 +216,8 @@ class PatchEngine:
             return
         if self.peo is None:
             raise PatchEngineOuterMissing
+
+        uuid_dict: dict[str, str] | None # satisfy mypy
 
         for event, event_arg in self.patch_event_queue:
             match event:
