@@ -6,7 +6,6 @@ from qtpy.QtCore import (
 from qtpy.QtGui import (
     QWheelEvent, QKeyEvent, QMouseEvent, QPaintEvent,
     QPainter, QPen, QPainterPath, QPixmap, QColor)
-    QPainter, QPen, QPainterPath, QPixmap, QColor)
 
 if TYPE_CHECKING:
     # FIX : QAction not found by pylance
