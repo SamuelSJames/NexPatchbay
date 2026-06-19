@@ -16,9 +16,14 @@ ifeq ($(QT_VERSION), 6)
 	QT_API ?= PyQt6
 	PYUIC ?= pyuic6
 	PYLUPDATE ?= pylupdate6
+	RCC_EXEC := $(shell command -v $(RCC) 2>/dev/null)
+	RCC_QT6 := $(shell qtpaths6 --query QT_HOST_LIBEXECS 2>/dev/null)/rcc
+	ifeq (/rcc, $(RCC_QT6))
+		RCC_QT6 := /usr/lib/qt6/libexec/rcc
+	endif
 
-	ifeq (, $(which $(RCC)))
-		RCC := /usr/lib/qt6/libexec/rcc
+	ifeq (, $(RCC_EXEC))
+		RCC := $(RCC_QT6)
 	endif
 
 	ifeq (, $(shell which $(LRELEASE)))
@@ -56,10 +61,14 @@ QT_PREPARE:
 # ---------------------
 # Resources
 
+RESOURCE_FILES := $(shell sed -n 's|.*<file>\(.*\)</file>.*|resources/\1|p' resources/resources.qrc)
+
 RES: source/patchbay/resources_rc.py
 
-source/patchbay/resources_rc.py: resources/resources.qrc
-	${RCC} -g python $< |sed 's/ PySide. / qtpy /' > $@
+source/patchbay/resources_rc.py: resources/resources.qrc $(RESOURCE_FILES)
+	${RCC} -g python $< -o $@.tmp
+	sed 's/ PySide. / qtpy /' $@.tmp > $@
+	rm -f $@.tmp
 
 # ---------------------
 # UI code

@@ -37,7 +37,7 @@ class JackAgnostic(Enum):
     'Enum used by Patchichi to set what is displayed'
 
     NONE = 0
-    'Not JACK agnostic, used by Patchance and RaySession'
+    'Not JACK agnostic, used by Patchance and NexSession'
 
     DUMMY = 1
     'JACK agnostic in reality, but display all widgets'

@@ -7,9 +7,9 @@
 [.text-right]
 image:flags/en.jpeg[EN, 40, 30, link=../en/manual.html] image:flags/fr.jpeg[FR, 30, 20, link=../fr/manual.html]
 
-image:raysession.svg["icon", 100, 100] image:patchance.svg["icon", 100, 100] image:patchichi.svg["icon", 100, 100]
+image:nexsession.svg["icon", 100, 100] image:patchance.svg["icon", 100, 100] image:patchichi.svg["icon", 100, 100]
 
-Welcome to the HoustonPatchbay manual, the JACK patchbay used in RaySession, Patchance and Patchichi.
+Welcome to the HoustonPatchbay manual, the JACK patchbay used in NexSession, Patchance and Patchichi.
 
 == Overview
 
@@ -69,7 +69,7 @@ video::video/patchbay_simple_connect.mp4[width=640]
 
 == Options
 
-Right click anywhere on the patchbay to display the menu. This menu is also present in the RaySession menu (*Patchbay* menu).
+Right click anywhere on the patchbay to display the menu. This menu is also present in the NexSession menu (*Patchbay* menu).
 It will allow you to :
 
 * switch the patchbay to full screen

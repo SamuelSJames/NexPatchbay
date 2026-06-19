@@ -116,7 +116,7 @@ class AlsaClient:
 class AlsaManager:
     def __init__(self, jack_mng: 'PatchEngine'):
         self.pbe = jack_mng.peo
-        self.seq = Sequencer(clientname='raysession')
+        self.seq = Sequencer(clientname='nexsession')
 
         self._all_alsa_connections = list[AlsaConn]()
         self._connections = list[AlsaConn]()
@@ -130,7 +130,7 @@ class AlsaManager:
                      | SEQ_PORT_CAP_SUBS_WRITE
                      | SEQ_PORT_CAP_NO_EXPORT)
         input_id = self.seq.create_simple_port(
-            name="raysession_port",
+            name="nexsession_port",
             type=SEQ_PORT_TYPE_APPLICATION,
             caps=port_caps)
 

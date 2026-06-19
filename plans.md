@@ -51,5 +51,5 @@ The possibility to have things internally saved in config but not affecting meta
 
 This method has the advantage of not disturbing the rest of the ecosystem. At the opposite, changing a name and have this name displayed in other DAWS is nice.
 
-*the patchbay module has no JACK client, but it is connected to a JACK client in the main program (RaySession or Patchance).
+*the patchbay module has no JACK client, but it is connected to a JACK client in the main program (NexSession or Patchance).
 

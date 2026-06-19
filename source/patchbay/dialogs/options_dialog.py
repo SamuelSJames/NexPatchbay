@@ -188,7 +188,7 @@ class CanvasOptionsDialog(QDialog):
 
     def auto_export_pretty_names_changed(self, state: bool):
         # option has been changed from the daemon itself
-        # (probably with ray_control)
+        # (probably with nex_control)
         b = self.ui.checkBoxExportCustomNames
         if b.isEnabled():
             b.setChecked(state)

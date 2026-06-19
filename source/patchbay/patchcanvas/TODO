@@ -12,7 +12,7 @@ Passage à GroupedConns:
     # PortWidget add_line_to_port: pour itemChange (selected + in_front)
     # set_opacity
     set_connection_in_front:
-        pour filter_groups: Attention à RaySession
+        pour filter_groups: Attention à NexSession
 
 
 Peut-être revoir BoxLayout pour avoir une classe fiable après init from box
@@ -32,7 +32,7 @@ Views menu:
 
 Views widget:
 
-RaySession/Patchance:
+NexSession/Patchance:
     gérer le viewwidget
 
 arranger signal chain:

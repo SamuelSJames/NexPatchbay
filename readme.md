@@ -1,17 +1,17 @@
 What is it ?
 ------------
 
-This a patchbay for JACK used by RaySession and Patchance, usable by other python Qt5 softwares.
+This a patchbay for JACK used by NexSession and Patchance, usable by other python Qt5 softwares.
 
-This is not a program itself, it is used as a git submodule in RaySession and Patchance.
+This is not a program itself, it is used as a git submodule in NexSession and Patchance.
 The 'patchbay' folder is linked into the source code of theses projects.
 
 How to implement this ?
 ------------
 
 To use it, look how it is implemented:
-in Raysession:
-* src/gui/ray_patchbay_manager
+in NexSession:
+* src/gui/nex_patchbay_manager
 
 in Patchance:
 * src/patchance_patchbay_manager

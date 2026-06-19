@@ -94,16 +94,20 @@ def init(view: PatchGraphicsView, callbacker: ProtoCallbacker,
 
     if canvas.theme_manager is None:
         canvas.theme_manager = ThemeManager(theme_paths)
-        if not canvas.theme_manager.set_theme(options.theme_name):
+        requested_theme = options.theme_name or fallback_theme
+        if not canvas.theme_manager.set_theme(requested_theme):
             if canvas.theme_manager.set_theme(fallback_theme):
                 _logger.warning(
-                f"theme '{options.theme_name}' has not been found,"
+                f"theme '{requested_theme}' has not been found,"
                 f"use '{fallback_theme}' instead.")
+                options.theme_name = fallback_theme
             else:
                 _logger.warning(
-                f"theme '{options.theme_name}' has not been found,"
+                f"theme '{requested_theme}' has not been found,"
                 "use the very ugly fallback theme.")
                 canvas.theme_manager.set_fallback_theme()
+        else:
+            options.theme_name = requested_theme
 
         canvas.theme.load_cache()
 

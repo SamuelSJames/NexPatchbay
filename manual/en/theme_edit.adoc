@@ -6,7 +6,7 @@
 
 == Introduction
 
-This guide helps to write custom HoustonPatchbay patchbay themes, which are used by RaySession, Patchance and Patchichi.
+This guide helps to write custom HoustonPatchbay patchbay themes, which are used by NexSession, Patchance and Patchichi.
 
 A good practice is to modify an existing theme, starting from a light theme if you want to make a light theme, else starting from a dark theme.
 
@@ -21,7 +21,7 @@ Your theme should be located in:
 replace 
 
 * _user_ with your user name
-* _software_ with the software you use in lower case (raysession, patchance or patchichi)
+* _software_ with the software you use in lower case (nexsession, patchance or patchichi)
 * _My Theme_ with your theme name
 
 You can now edit the theme.conf file to change the theme. When you save changes to the file, the theme is directly uploaded in the software, so you don't need to restart the program to test the changes !
@@ -318,7 +318,7 @@ box.client.selected
 
 * *hardware* : boxes representing hardware physicals groups.
 * *monitor* : boxes representing Monitors of hardware physicals groups (only for PipeWire)
-* *client* : RaySession client boxes, if JACK client name follows the NSM rules.
+* *client* : NexSession client boxes, if JACK client name follows the NSM rules.
 
 === [wrapper]
 
@@ -384,7 +384,7 @@ portgroup.cv
 portgroup.cv.selected
 ```
 
-That said, in Patchance or RaySession, portgroups exists only for regular audio ports (for the moment, but are midi or CV portgroups really needed ??).
+That said, in Patchance or NexSession, portgroups exists only for regular audio ports (for the moment, but are midi or CV portgroups really needed ??).
 
 === [line]
 a line represents a connection between two ports.

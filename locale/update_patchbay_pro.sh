@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# This is a little script for refresh raysession.pro and update .ts files.
+# This is a little script for refresh nexsession.pro and update .ts files.
 # TRANSLATOR: if you want to translate the program, you don't need to run it !
 
 contents=""

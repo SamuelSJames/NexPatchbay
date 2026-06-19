@@ -351,7 +351,7 @@ It provides a shorter name than the original.</string>
                </property>
                <property name="icon">
                 <iconset theme="edit-duplicate">
-                 <normaloff>../../../../../RaySession/HoustonPatchbay/resources/ui</normaloff>../../../../../RaySession/HoustonPatchbay/resources/ui</iconset>
+                 <normaloff>../../../../../NexSession/HoustonPatchbay/resources/ui</normaloff>../../../../../NexSession/HoustonPatchbay/resources/ui</iconset>
                </property>
               </widget>
              </item>
@@ -365,7 +365,7 @@ It provides a shorter name than the original.</string>
                </property>
                <property name="icon">
                 <iconset theme="document-edit">
-                 <normaloff>../../../../../RaySession/HoustonPatchbay/resources/ui</normaloff>../../../../../RaySession/HoustonPatchbay/resources/ui</iconset>
+                 <normaloff>../../../../../NexSession/HoustonPatchbay/resources/ui</normaloff>../../../../../NexSession/HoustonPatchbay/resources/ui</iconset>
                </property>
               </widget>
              </item>

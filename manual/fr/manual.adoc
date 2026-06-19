@@ -8,9 +8,9 @@
 [.text-right]
 image:flags/en.jpeg[EN, 30, 20, link=../en/manual.html] image:flags/fr.jpeg[FR, 40, 30, link=../fr/manual.html]
 
-image:raysession.svg["icon", 100, 100] image:patchance.svg["icon", 100, 100] image:patchichi.svg["icon", 100, 100]
+image:nexsession.svg["icon", 100, 100] image:patchance.svg["icon", 100, 100] image:patchichi.svg["icon", 100, 100]
 
-Bienvenue sur le manuel de HoustonPatchbay, la baie de brassage pour JACK utilisée dans RaySession, Patchance et Patchichi.
+Bienvenue sur le manuel de HoustonPatchbay, la baie de brassage pour JACK utilisée dans NexSession, Patchance et Patchichi.
 
 == Vue d'ensemble
 
@@ -69,7 +69,7 @@ video::video/patchbay_simple_connect.mp4[width=640]
 
 == Les options
 
-Un clic droit n'importe où sur la baie de brassage permet d'en afficher le menu. Ce menu est également présent dans le menu de RaySession (menu *Baie de brassage*).
+Un clic droit n'importe où sur la baie de brassage permet d'en afficher le menu. Ce menu est également présent dans le menu de NexSession (menu *Baie de brassage*).
 Il vous permettra de :
 
 * basculer la baie de brassage en plein écran
